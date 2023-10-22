@@ -59,9 +59,7 @@ public class TeleopMain extends LinearOpMode {
         waitForStart();
         if (opModeIsActive()) {
             while (opModeIsActive()) {
-                drive_speed = 0.5;
-                drive_speed = (1 - gamepad1.left_trigger);
-                drive_speed = (gamepad1.right_trigger);
+                drive_speed = (0.5 + (gamepad1.right_trigger/2) - (gamepad1.left_trigger/3));
 
                 // this handles macanum wheel driving with strafe
                 // multiplied by drive speed
