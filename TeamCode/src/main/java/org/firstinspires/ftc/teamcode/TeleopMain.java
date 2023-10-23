@@ -23,6 +23,7 @@ public class TeleopMain extends LinearOpMode {
     private DcMotor Arm1;
     private Servo lefthand;
     private Servo righthand;
+    private Servo planeLauncher;
 
 
 
@@ -35,6 +36,8 @@ public class TeleopMain extends LinearOpMode {
         double turbo;
         double arm_speed;
         double arm_power = 0;
+        boolean launcher = false;
+        double launcher_timer = 0;
 
         topleftmotor = hardwareMap.get(DcMotor.class, "top left motor");
         bottomleftmotor = hardwareMap.get(DcMotor.class, "bottom left motor");
@@ -46,6 +49,7 @@ public class TeleopMain extends LinearOpMode {
         lefthand = hardwareMap.get(Servo.class, "left hand");
         righthand = hardwareMap.get(Servo.class, "right hand");
         armlimitbutton = hardwareMap.get(TouchSensor.class, "arm limit button");
+        planeLauncher = hardwareMap.get(Servo.class, "planeLauncher");
 
         // set motor directions on initialization
         topleftmotor.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -61,13 +65,23 @@ public class TeleopMain extends LinearOpMode {
             while (opModeIsActive()) {
                 drive_speed = (0.5 + (gamepad1.right_trigger/2) - (gamepad1.left_trigger/3));
 
+                // touchpad arm controlls, very cool
+                if (gamepad1.touchpad_finger_1) {
+                    arm_power = -gamepad1.touchpad_finger_1_y;
+                }
+
+                if (!gamepad1.touchpad_finger_1){
+                    arm_power = 0;
+                }
+
+
                 // this handles macanum wheel driving with strafe
                 // multiplied by drive speed
                 bottomleftmotor.setPower(drive_speed * (((0 - gamepad1.right_stick_y) + gamepad1.left_stick_x) - gamepad1.right_stick_x));
                 bottomrightmotor.setPower(drive_speed * (((0 - gamepad1.right_stick_y) - gamepad1.left_stick_x) + gamepad1.right_stick_x));
                 topleftmotor.setPower(drive_speed * ((0 - gamepad1.right_stick_y) + gamepad1.left_stick_x + gamepad1.right_stick_x));
                 toprightmotor.setPower(drive_speed * (((0 - gamepad1.right_stick_y) - gamepad1.left_stick_x) - gamepad1.right_stick_x));
-
+                /**
                 if (gamepad1.dpad_up) {
                     arm_power = -1;
                 }
@@ -77,6 +91,7 @@ public class TeleopMain extends LinearOpMode {
                 else{
                     arm_power = 0;
                 }
+                 **/
                 //this will be the real stuff
                 if (armsafetybutton.isPressed()) {
                     Arm1.setPower(-(Math.min(Math.max(arm_power, -1), 0)));
@@ -101,6 +116,13 @@ public class TeleopMain extends LinearOpMode {
                     lefthand.setPosition(0.1);
                     righthand.setPosition(0.9);
                 }
+                if (gamepad1.a){
+                    planeLauncher.setPosition(0);
+                }
+                if (gamepad1.b){
+                    planeLauncher.setPosition(1);
+                }
+
 
                 telemetry.update();
             }
