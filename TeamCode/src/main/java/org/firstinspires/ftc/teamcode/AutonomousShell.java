@@ -55,13 +55,14 @@ public class AutonomousShell extends LinearOpMode {
     private DcMotor toprightmotor = null;
     private DcMotor bottomrightmotor = null;
     private BNO055IMU imu         = null;      // Control/Expansion Hub IMU
-    private Servo lefthand;
-    private Servo righthand;
     private DcMotor Arm;
-    private DcMotor Arm1;
     private TouchSensor armsafetybutton;
     private TouchSensor armlimitbutton;
     private ColorSensor cool;
+    private DcMotor arm_Tilt;
+    private Servo scoop;
+    private Servo stab;
+    private Servo planeLauncher;
 
     private double          robotHeading  = 0;
     private double          headingOffset = 0;
@@ -108,10 +109,10 @@ public class AutonomousShell extends LinearOpMode {
         topleftmotor = hardwareMap.get(DcMotor.class, "top left motor");
         toprightmotor = hardwareMap.get(DcMotor.class, "top right motor");
         bottomrightmotor = hardwareMap.get(DcMotor.class, "bottom right motor");
-        lefthand = hardwareMap.get(Servo.class, "left hand");
-        righthand = hardwareMap.get(Servo.class, "right hand");
+        scoop = hardwareMap.get(Servo.class, "scoop");
+        stab = hardwareMap.get(Servo.class, "stab");
         Arm = hardwareMap.get(DcMotor.class, "Arm");
-        Arm1 = hardwareMap.get(DcMotor.class, "Arm1");
+        arm_Tilt = hardwareMap.get(DcMotor.class, "arm_Tilt");
         armsafetybutton = hardwareMap.get(TouchSensor.class, "arm safety button");
         armlimitbutton = hardwareMap.get(TouchSensor.class, "arm limit button");
         cool = hardwareMap.get(ColorSensor.class, "cool");
