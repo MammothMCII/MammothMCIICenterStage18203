@@ -20,9 +20,9 @@ public class TeleopMain extends LinearOpMode {
     private TouchSensor armsafetybutton;
     private TouchSensor armlimitbutton;
     private DcMotor Arm;
-    private DcMotor Arm1;
-    private Servo lefthand;
-    private Servo righthand;
+    private DcMotor arm_Tilt;
+    private Servo scoop;
+    private Servo stab;
     private Servo planeLauncher;
 
 
@@ -36,6 +36,7 @@ public class TeleopMain extends LinearOpMode {
         double turbo;
         double arm_speed;
         double arm_power = 0;
+        double arm_tilt_speed = 0;
         boolean launcher = false;
         double launcher_timer = 0;
 
@@ -45,9 +46,9 @@ public class TeleopMain extends LinearOpMode {
         bottomrightmotor = hardwareMap.get(DcMotor.class, "bottom right motor");
         armsafetybutton = hardwareMap.get(TouchSensor.class, "arm safety button");
         Arm = hardwareMap.get(DcMotor.class, "Arm");
-        Arm1 = hardwareMap.get(DcMotor.class, "Arm1");
-        lefthand = hardwareMap.get(Servo.class, "left hand");
-        righthand = hardwareMap.get(Servo.class, "right hand");
+        arm_Tilt = hardwareMap.get(DcMotor.class, "armTilt");
+        scoop = hardwareMap.get(Servo.class, "scoop");
+        stab = hardwareMap.get(Servo.class, "stab");
         armlimitbutton = hardwareMap.get(TouchSensor.class, "arm limit button");
         planeLauncher = hardwareMap.get(Servo.class, "planeLauncher");
 
@@ -58,22 +59,26 @@ public class TeleopMain extends LinearOpMode {
         bottomrightmotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         Arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        Arm1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        arm_Tilt.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         waitForStart();
         if (opModeIsActive()) {
             while (opModeIsActive()) {
                 drive_speed = (0.5 + (gamepad1.right_trigger/2) - (gamepad1.left_trigger/3));
 
-                // touchpad arm controlls, very cool
-                if (gamepad1.touchpad_finger_1) {
-                    arm_power = -gamepad1.touchpad_finger_1_y;
+                if (gamepad1.touchpad_finger_1_x > 0) {
+                    // touchpad arm controlls, very cool
+                    arm_power = -gamepad1.touchpad_finger_1_y/4;
+                }
+
+                if (gamepad1.touchpad_finger_1_x < 0) {
+                    arm_tilt_speed = -gamepad1.touchpad_finger_1_y/3;
                 }
 
                 if (!gamepad1.touchpad_finger_1){
                     arm_power = 0;
+                    arm_tilt_speed = 0;
                 }
-
 
                 // this handles macanum wheel driving with strafe
                 // multiplied by drive speed
@@ -94,27 +99,29 @@ public class TeleopMain extends LinearOpMode {
                  **/
                 //this will be the real stuff
                 if (armsafetybutton.isPressed()) {
-                    Arm1.setPower(-(Math.min(Math.max(arm_power, -1), 0)));
+
                     Arm.setPower(Math.min(Math.max(arm_power, -1), 0));
                 }
                 else if(armlimitbutton.isPressed()) {
-                    Arm1.setPower(-(Math.min(Math.max(arm_power, 0), 1)));
+
                     Arm.setPower((Math.min(Math.max(arm_power, 0), 1)));
                 }
                 else {
-                    Arm1.setPower(-(arm_power));
-                    Arm.setPower(2 * arm_power);
+
+                    Arm.setPower(arm_power);
                 }
+
+                arm_Tilt.setPower(arm_tilt_speed);
 
                 // opens grabber
                 if (gamepad1.left_bumper) {
-                    lefthand.setPosition(0.7);
-                    righthand.setPosition(0.3);
+                    scoop.setPosition(0.7);
+                    stab.setPosition(0.3);
                 }
                 // closes grabber
                 if (gamepad1.right_bumper) {
-                    lefthand.setPosition(0.1);
-                    righthand.setPosition(0.9);
+                    scoop.setPosition(0.1);
+                    stab.setPosition(0.9);
                 }
                 if (gamepad1.a){
                     planeLauncher.setPosition(0);
