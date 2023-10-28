@@ -111,8 +111,9 @@ public class AutonomousShell extends LinearOpMode {
         bottomrightmotor = hardwareMap.get(DcMotor.class, "bottom right motor");
         scoop = hardwareMap.get(Servo.class, "scoop");
         stab = hardwareMap.get(Servo.class, "stab");
+        planeLauncher = hardwareMap.get(Servo.class, "planeLauncher");
         Arm = hardwareMap.get(DcMotor.class, "Arm");
-        arm_Tilt = hardwareMap.get(DcMotor.class, "arm_Tilt");
+        arm_Tilt = hardwareMap.get(DcMotor.class, "armTilt");
         armsafetybutton = hardwareMap.get(TouchSensor.class, "arm safety button");
         armlimitbutton = hardwareMap.get(TouchSensor.class, "arm limit button");
         cool = hardwareMap.get(ColorSensor.class, "cool");
@@ -133,7 +134,7 @@ public class AutonomousShell extends LinearOpMode {
         bottomrightmotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         Arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        Arm1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        arm_Tilt.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 
         // define initialization values for IMU, and then initialize it.
@@ -156,8 +157,10 @@ public class AutonomousShell extends LinearOpMode {
 
         if (opModeIsActive()) {
             runtime.reset();
+            //this line here is really the only important bit
             while (opModeIsActive()) {
-                encoderDrive(30, 10, 0.25, 0.5, 1, 0.25);
+                encoderDrive(32, 10, 0.25, 0.5, 1, 0.25);
+                encoderDrive(-2, 10, 0.25, 0.5, 1, 0.25);
                 sleep(8080008);
             }
         }
@@ -254,26 +257,26 @@ public class AutonomousShell extends LinearOpMode {
         }
     }
     public void CloseHand(){
-        lefthand.setPosition(0.7); //close hand
-        righthand.setPosition(0.3); //close hand
+        scoop.setPosition(0.7); //close hand
+        stab.setPosition(0.3); //close hand
     }
     public void OpenHand(){
-        lefthand.setPosition(0.1);
-        righthand.setPosition(0.9);
+        scoop.setPosition(0.1);
+        stab.setPosition(0.9);
     }
 
     public void ArmMoveSeconds(double armSpeed, long seconds, long delay) {
-        Arm1.setPower(armSpeed);
+        arm_Tilt.setPower(armSpeed);
         Arm.setPower(-(armSpeed));
         sleep(seconds);
-        Arm1.setPower(0);
+        arm_Tilt.setPower(0);
         Arm.setPower(0);
         sleep(delay);
     }
 
     public void RunToZero() {
         while (!armsafetybutton.isPressed()) {
-            Arm1.setPower(-1);
+            arm_Tilt.setPower(-1);
             Arm.setPower(1);
             if (armlimitbutton.isPressed()){
                 break;
@@ -282,7 +285,7 @@ public class AutonomousShell extends LinearOpMode {
     }
     public void RunToTop() {
         while (!armlimitbutton.isPressed()) {
-            Arm1.setPower(1);
+            arm_Tilt.setPower(1);
             Arm.setPower(-1);
             if (armlimitbutton.isPressed()) {  //this checks for the wrong variable to break but it still works, now its worse
                 break;
@@ -468,7 +471,7 @@ public class AutonomousShell extends LinearOpMode {
                             double TargetInches,
                             double timeoutS) {
         int newArmTarget;
-        int newArm1Target;
+        int newarm_TiltTarget;
 
 
         // Ensure that the opmode is still active
@@ -476,20 +479,20 @@ public class AutonomousShell extends LinearOpMode {
 
             // Determine new target position, and pass to motor controller
             newArmTarget = topleftmotor.getCurrentPosition() - (int)(TargetInches * ARM_COUNTS_PER_INCH);
-            newArm1Target = topleftmotor.getCurrentPosition() + (int)(TargetInches * ARM_COUNTS_PER_INCH);
+            newarm_TiltTarget = topleftmotor.getCurrentPosition() + (int)(TargetInches * ARM_COUNTS_PER_INCH);
 
             Arm.setTargetPosition(newArmTarget);
-            Arm1.setTargetPosition(newArm1Target);
+            arm_Tilt.setTargetPosition(newarm_TiltTarget);
 
 
             // Turn On RUN_TO_POSITION
             Arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            Arm1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            arm_Tilt.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
             // reset the timeout time and start motion.
             runtime.reset();
             Arm.setPower((Math.abs(speed)));
-            Arm1.setPower(-(Math.abs(speed)));
+            arm_Tilt.setPower(-(Math.abs(speed)));
 
             // keep looping while we are still active, and there is time left, and both motors are running.
             // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
@@ -499,17 +502,17 @@ public class AutonomousShell extends LinearOpMode {
             // onto the next step, use (isBusy() || isBusy()) in the loop test.
             while (opModeIsActive() &&
                     (runtime.seconds() < timeoutS) &&
-                    (Arm.isBusy() && Arm1.isBusy())) {
+                    (Arm.isBusy() && arm_Tilt.isBusy())) {
                 telemetry.update();
             }
 
             // Stop all motion;
             Arm.setPower(0);
-            Arm1.setPower(0);
+            arm_Tilt.setPower(0);
 
             // Turn off RUN_TO_POSITION
             Arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            Arm1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            arm_Tilt.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
             sleep(250);   // optional pause after each move.
         }
