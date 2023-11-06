@@ -39,6 +39,8 @@ public class TeleopMain extends LinearOpMode {
         double arm_tilt_speed = 0;
         boolean launcher = false;
         double launcher_timer = 0;
+        boolean planeToggle = 0;
+        boolean planeHeld = 0;
 
         topleftmotor = hardwareMap.get(DcMotor.class, "top left motor");
         bottomleftmotor = hardwareMap.get(DcMotor.class, "bottom left motor");
@@ -68,6 +70,7 @@ public class TeleopMain extends LinearOpMode {
 
                 if (gamepad1.touchpad_finger_1_x > 0) {
                     // touchpad arm controlls, very cool
+                    //todo: make this work for two fingers if this is actually what we do
                     arm_power = -gamepad1.touchpad_finger_1_y/4;
                 }
 
@@ -123,11 +126,18 @@ public class TeleopMain extends LinearOpMode {
                     scoop.setPosition(0.1);
                     stab.setPosition(0.9);
                 }
-                if (gamepad1.a){
+                if (gamepad1.a && planeToggle == 0 && planeHeld = 0){
                     planeLauncher.setPosition(0);
+                    planeToggle = 1;
+                    planeHeld = 1;
                 }
-                if (gamepad1.b){
+                if (gamepad1.a && planeToggle == 1 && planeHeld = 0){
                     planeLauncher.setPosition(1);
+                    planeToggle = 0;
+                    planeHeld = 1;
+                }
+                if (!gamepad1.a){
+                    planeHeld = 0;
                 }
 
 
