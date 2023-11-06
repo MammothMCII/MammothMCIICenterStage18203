@@ -126,12 +126,12 @@ public class TeleopMain extends LinearOpMode {
                     scoop.setPosition(0.1);
                     stab.setPosition(0.9);
                 }
-                if (gamepad1.a && planeToggle == 0 && planeHeld = 0){
+                if (gamepad1.a && planeToggle == 0 && planeHeld == 0){
                     planeLauncher.setPosition(0);
                     planeToggle = 1;
                     planeHeld = 1;
                 }
-                if (gamepad1.a && planeToggle == 1 && planeHeld = 0){
+                if (gamepad1.a && planeToggle == 1 && planeHeld == 0){
                     planeLauncher.setPosition(1);
                     planeToggle = 0;
                     planeHeld = 1;
