@@ -19,12 +19,12 @@ public class TeleopMain extends LinearOpMode {
     private DcMotor bottomrightmotor;
     private TouchSensor armsafetybutton;
     private TouchSensor armlimitbutton;
-    private DcMotor Arm;
-    private DcMotor arm_Tilt;
     private DcMotor winch;
     private Servo scoop;
     private Servo stab;
     private Servo planeLauncher;
+    private Servo winch_release;
+
 
 
 
@@ -48,12 +48,11 @@ public class TeleopMain extends LinearOpMode {
         toprightmotor = hardwareMap.get(DcMotor.class, "top right motor");
         bottomrightmotor = hardwareMap.get(DcMotor.class, "bottom right motor");
         armsafetybutton = hardwareMap.get(TouchSensor.class, "arm safety button");
-        Arm = hardwareMap.get(DcMotor.class, "Arm");
-        arm_Tilt = hardwareMap.get(DcMotor.class, "armTilt");
         scoop = hardwareMap.get(Servo.class, "scoop");
         stab = hardwareMap.get(Servo.class, "stab");
         armlimitbutton = hardwareMap.get(TouchSensor.class, "arm limit button");
         planeLauncher = hardwareMap.get(Servo.class, "planeLauncher");
+        winch_release = hardwareMap.get(Servo.class, "winch release");
         winch = hardwareMap.get(DcMotor.class, "winch");
 
         // set motor directions on initialization
@@ -61,9 +60,6 @@ public class TeleopMain extends LinearOpMode {
         bottomleftmotor.setDirection(DcMotorSimple.Direction.FORWARD);
         toprightmotor.setDirection(DcMotorSimple.Direction.REVERSE);
         bottomrightmotor.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        Arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        arm_Tilt.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         waitForStart();
         if (opModeIsActive()) {
@@ -99,9 +95,17 @@ public class TeleopMain extends LinearOpMode {
                     winch.setPower(-1);
                 }
                 else{
-                    arm_power = 0;
+                    winch.setPower(0);
                 }
 
+                if (gamepad1.dpad_left) {
+                    winch_release.setPosition(1);
+                }
+                if (gamepad1.dpad_right) {
+                    winch_release.setPosition(0.4);
+                }
+
+                /**
                 //this will be the real stuff
                 if (armsafetybutton.isPressed()) {
 
@@ -115,8 +119,7 @@ public class TeleopMain extends LinearOpMode {
 
                     Arm.setPower(arm_power);
                 }
-
-                arm_Tilt.setPower(arm_tilt_speed);
+                **/
 
                 // opens grabber
                 if (gamepad1.left_bumper) {
@@ -128,19 +131,17 @@ public class TeleopMain extends LinearOpMode {
                     scoop.setPosition(0.1);
                     stab.setPosition(0.9);
                 }
-                if (gamepad1.a && planeToggle == true && planeHeld == false){
+                if (gamepad1.a){
                     planeLauncher.setPosition(0);
                     planeToggle = true;
                     planeHeld = true;
                 }
-                if (gamepad1.a && planeToggle == true && planeHeld == false){
+                if (gamepad1.b){
                     planeLauncher.setPosition(1);
                     planeToggle = false;
                     planeHeld = true;
                 }
-                if (!gamepad1.a){
-                    planeHeld = false;
-                }
+
 
 
 

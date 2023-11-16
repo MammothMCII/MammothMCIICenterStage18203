@@ -15,11 +15,11 @@ public class SlightlyLessBasicAutoLeft extends LinearOpMode {
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
 
         Trajectory myTrajectory = drive.trajectoryBuilder(new Pose2d())
-                .forward(40)
+                .strafeLeft(44)
                 .build();
 
         Trajectory Traj2 = drive.trajectoryBuilder(new Pose2d())
-                .back(2)
+                .forward(85)
                 .build();
 
         waitForStart();
