@@ -14,11 +14,11 @@ public class BasicAuto extends LinearOpMode {
     public void runOpMode() {
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
 
-        Trajectory myTrajectory = drive.trajectoryBuilder(new Pose2d())
-                .forward(25)
+        Trajectory Traj1 = drive.trajectoryBuilder(new Pose2d())
+                .forward(42)
                 .build();
 
-        Trajectory Traj2 = drive.trajectoryBuilder(new Pose2d())
+        Trajectory Traj2 = drive.trajectoryBuilder(Traj1.end())
                 .back(2)
                 .build();
 
@@ -26,7 +26,7 @@ public class BasicAuto extends LinearOpMode {
 
         if(isStopRequested()) return;
 
-        drive.followTrajectory(myTrajectory);
+        drive.followTrajectory(Traj1);
         drive.followTrajectory(Traj2);
     }
 }
