@@ -15,7 +15,7 @@ public class BasicAuto extends LinearOpMode {
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
 
         Trajectory myTrajectory = drive.trajectoryBuilder(new Pose2d())
-                .forward(40)
+                .forward(25)
                 .build();
 
         Trajectory Traj2 = drive.trajectoryBuilder(new Pose2d())
