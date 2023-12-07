@@ -44,7 +44,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 
 @Autonomous(name = "Autonomous_Sad", group = "Autonomous")
-
+@Disabled
 public class AutonomousShell extends LinearOpMode {
 
     String Signal_State = "no";

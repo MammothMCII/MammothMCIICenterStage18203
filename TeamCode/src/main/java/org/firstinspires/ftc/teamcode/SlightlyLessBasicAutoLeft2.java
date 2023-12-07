@@ -7,11 +7,10 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.drive.AutonomousConstants;
-import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 
 
-@Autonomous(name = "AutoRed1", group = "Autonomous")
-public class SlightlyLessBasicAutoLeft extends LinearOpMode {
+@Autonomous(name = "AutoRed2", group = "Autonomous")
+public class SlightlyLessBasicAutoLeft2 extends LinearOpMode {
     @Override
     public void runOpMode() {
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
@@ -21,7 +20,7 @@ public class SlightlyLessBasicAutoLeft extends LinearOpMode {
         drive.setPoseEstimate(startPose);
 
         Trajectory Traj1 = drive.trajectoryBuilder(startPose)
-                .strafeLeft(4)
+                .strafeLeft(27)
                 .build();
 
         Trajectory Traj2 = drive.trajectoryBuilder(Traj1.end())

@@ -1,3 +1,4 @@
+
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
@@ -7,21 +8,20 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.drive.AutonomousConstants;
-import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 
 
-@Autonomous(name = "AutoRed1", group = "Autonomous")
-public class SlightlyLessBasicAutoLeft extends LinearOpMode {
+@Autonomous(name = "AutoBlue3", group = "Autonomous")
+public class SlightlyLessBasicAutoRight3 extends LinearOpMode {
     @Override
     public void runOpMode() {
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
 
-        Pose2d startPose = new Pose2d(-12, -60, Math.toRadians(0));
+        Pose2d startPose = new Pose2d(-12, 60, Math.toRadians(0));
 
         drive.setPoseEstimate(startPose);
 
         Trajectory Traj1 = drive.trajectoryBuilder(startPose)
-                .strafeLeft(4)
+                .strafeRight(53)
                 .build();
 
         Trajectory Traj2 = drive.trajectoryBuilder(Traj1.end())
