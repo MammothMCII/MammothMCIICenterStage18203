@@ -15,19 +15,23 @@ public class SlightlyLessBasicAutoRight extends LinearOpMode {
     public void runOpMode() {
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
 
-        Trajectory myTrajectory = drive.trajectoryBuilder(new Pose2d())
-                .strafeRight(44)
+        Pose2d startPose = new Pose2d(-12, 60, Math.toRadians(0));
+
+        drive.setPoseEstimate(startPose);
+
+        Trajectory Traj1 = drive.trajectoryBuilder(startPose)
+                .strafeRight(25)
                 .build();
 
-        Trajectory Traj2 = drive.trajectoryBuilder(new Pose2d())
-                .forward(85)
+        Trajectory Traj2 = drive.trajectoryBuilder(Traj1.end())
+                .forward(68)
                 .build();
 
         waitForStart();
 
         if(isStopRequested()) return;
 
-        drive.followTrajectory(myTrajectory);
+        drive.followTrajectory(Traj1);
         drive.followTrajectory(Traj2);
     }
 }
