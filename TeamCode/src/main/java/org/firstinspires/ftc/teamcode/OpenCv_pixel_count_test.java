@@ -43,6 +43,7 @@ import java.util.List;
 
 @Autonomous(name= "opencvSkystoneDetector", group="autonomous")
 //@Disabled//comment out this line before using
+// this program would be used to find where the pixels l be tested and what threshold values to use
 public class OpenCv_pixel_count_test extends LinearOpMode {
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -164,15 +165,15 @@ public class OpenCv_pixel_count_test extends LinearOpMode {
             Core.extractChannel(yCbCrR, yCbCrR, 1);//takes ? difference and stores
 
             //b&w
-            Imgproc.threshold(yCbCrChan2Mat, thresholdMat, 148, 255, Imgproc.THRESH_BINARY);
-            Imgproc.threshold(yCbCrR, thresholdR, 150, 255, Imgproc.THRESH_BINARY);
+            //Imgproc.threshold(yCbCrChan2Mat, thresholdMat, 148, 255, Imgproc.THRESH_BINARY);
+            //Imgproc.threshold(yCbCrR, thresholdR, 150, 255, Imgproc.THRESH_BINARY);
 
             //outline/contour dont know what this does
             //Imgproc.findContours(thresholdMat, contoursList, new Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
             yCbCrChan2Mat.copyTo(all);//copies mat object
             //Imgproc.drawContours(all, contoursList, -1, new Scalar(255, 0, 0), 3, 8);//draws blue contours
 
-
+/**
             //get values from frame
             double[] pixMid = thresholdMat.get((int)(input.rows()* midPos[1]), (int)(input.cols()* midPos[0]));//gets value at circle
             valMid = (int)pixMid[0];
@@ -191,8 +192,8 @@ public class OpenCv_pixel_count_test extends LinearOpMode {
 
             double[] pixRightR = thresholdR.get((int)(input.rows()* rightPos[1]), (int)(input.cols()* rightPos[0]));//gets value at circle
             valRightR = (int)pixRightR[0];
+**/
 
-            /**
             double[] pixMid = yCbCrChan2Mat.get((int)(input.rows()* midPos[1]), (int)(input.cols()* midPos[0]));//gets value at circle
             valMid = (int)pixMid[0];
 
@@ -210,7 +211,7 @@ public class OpenCv_pixel_count_test extends LinearOpMode {
 
             double[] pixRightR = yCbCrR.get((int)(input.rows()* rightPos[1]), (int)(input.cols()* rightPos[0]));//gets value at circle
             valRightR = (int)pixRightR[0];
-            **/
+
 
             //create three points
             Point pointMid = new Point((int)(input.cols()* midPos[0]), (int)(input.rows()* midPos[1]));

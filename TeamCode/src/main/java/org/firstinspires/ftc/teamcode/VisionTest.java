@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.opencv.core.Core;
@@ -48,7 +49,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-@Autonomous(name= "VisionTest", group="autonomous")
+@Autonomous(name= "VisionFront", group="autonomous")
 //@Disabled//comment out this line before using
 public class VisionTest extends LinearOpMode {
     private ElapsedTime runtime = new ElapsedTime();
@@ -62,6 +63,7 @@ public class VisionTest extends LinearOpMode {
     private static int valMidR = -1;
     private static int valLeftR = -1;
     private static int valRightR = -1;
+
 
     private static float rectHeight = .6f/8f;
     private static float rectWidth = 1.5f/8f;
@@ -79,6 +81,10 @@ public class VisionTest extends LinearOpMode {
 
     OpenCvCamera phoneCam;
 
+
+    private DcMotor arm_tilt;
+
+
     @Override
     public void runOpMode() throws InterruptedException {
 
@@ -93,21 +99,46 @@ public class VisionTest extends LinearOpMode {
         //width, height
         //width = height in this case, because camera is in portrait mode.
 
+        arm_tilt = hardwareMap.get(DcMotor.class, "arm_tilt");
+
         //roadrunner initialization
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
 
-        Pose2d startPose = new Pose2d(-12, -60, Math.toRadians(0));
+        Pose2d startPose = new Pose2d(-39, -60, Math.toRadians(0));
 
         drive.setPoseEstimate(startPose);
 
         //build trajectories
-        Trajectory Traj1 = drive.trajectoryBuilder(startPose)
-                .forward(4)
+        //26, 6.5, 15.5, 31
+
+        //blueM
+        Trajectory Red_Forward = drive.trajectoryBuilder(startPose)
+                .forward(26)
+                .build();
+        Trajectory RedL_Left = drive.trajectoryBuilder(Red_Forward.end())
+                .strafeLeft(8)
+                .build();
+        Trajectory RedL_Return = drive.trajectoryBuilder(RedL_Left.end())
+                .strafeRight(100)
                 .build();
 
-        Trajectory Traj2 = drive.trajectoryBuilder(Traj1.end())
-                .strafeRight(AutonomousConstants.Forward_distance)
+        Trajectory RedR_Right = drive.trajectoryBuilder(Red_Forward.end())
+                .strafeRight(16.5)
                 .build();
+        Trajectory RedR_Return = drive.trajectoryBuilder(RedR_Right.end())
+                .strafeRight(85)
+                .build();
+
+        Trajectory RedC_Forward = drive.trajectoryBuilder(startPose)
+                .forward(31)
+                .build();
+        Trajectory RedC_Back = drive.trajectoryBuilder(RedC_Forward.end())
+                .back(5)
+                .build();
+        Trajectory RedC_Return = drive.trajectoryBuilder(RedC_Back.end())
+                .strafeRight(90)
+                .build();
+
 
         waitForStart();
         runtime.reset();
@@ -121,16 +152,49 @@ public class VisionTest extends LinearOpMode {
             telemetry.update();
             sleep(100);
 
-            if (valLeft != -1) {
+            if (valLeft != -1 || valRight != -1 || valMid != -1 || valLeftR != -1 || valRightR != -1 || valMidR != -1 || valLeft != 0 || valRight != 0 || valMid != 0 || valLeftR != 0 || valRightR != 0 || valMidR != 0) {
                 telemetry.addData("Values B", valLeft+"   "+valMid+"   "+valRight);
                 telemetry.addData("Values R", valLeftR+"   "+valMidR+"   "+valRightR);
                 telemetry.update();
 
-
                 if(isStopRequested()) return;
 
-                drive.followTrajectory(Traj1);
-                drive.followTrajectory(Traj2);
+                if (valLeft != 0) {
+
+                }
+                if (valRight != 0) {
+                    //Blue Right
+                }
+                if (valMid != 0) {
+                    //Blue mid
+                }
+
+
+                if (valLeftR != 0) {
+                    drive.followTrajectory(Red_Forward);
+                    drive.followTrajectory(RedL_Left);
+                    arm_tilt.setPower(1);
+                    sleep(500);
+                    arm_tilt.setPower(0);
+                    drive.followTrajectory(RedL_Return);
+                }
+                if (valRightR != 0) {
+                    drive.followTrajectory(Red_Forward);
+                    drive.followTrajectory(RedR_Right);
+                    arm_tilt.setPower(1);
+                    sleep(500);
+                    arm_tilt.setPower(0);
+                    drive.followTrajectory(RedR_Return);
+                }
+                if (valMidR != 0) {
+                    drive.followTrajectory(RedC_Forward);
+                    arm_tilt.setPower(1);
+                    sleep(500);
+                    arm_tilt.setPower(0);
+                    drive.followTrajectory(RedC_Back);
+                    drive.followTrajectory(RedC_Return);
+                }
+
                 sleep(1233456);
             }
 
@@ -224,25 +288,7 @@ public class VisionTest extends LinearOpMode {
             double[] pixRightR = thresholdR.get((int)(input.rows()* rightPos[1]), (int)(input.cols()* rightPos[0]));//gets value at circle
             valRightR = (int)pixRightR[0];
 
-            /**
-             double[] pixMid = yCbCrChan2Mat.get((int)(input.rows()* midPos[1]), (int)(input.cols()* midPos[0]));//gets value at circle
-             valMid = (int)pixMid[0];
 
-             double[] pixLeft = yCbCrChan2Mat.get((int)(input.rows()* leftPos[1]), (int)(input.cols()* leftPos[0]));//gets value at circle
-             valLeft = (int)pixLeft[0];
-
-             double[] pixRight = yCbCrChan2Mat.get((int)(input.rows()* rightPos[1]), (int)(input.cols()* rightPos[0]));//gets value at circle
-             valRight = (int)pixRight[0];
-
-             double[] pixMidR = yCbCrR.get((int)(input.rows()* midPos[1]), (int)(input.cols()* midPos[0]));//gets value at circle
-             valMidR = (int)pixMidR[0];
-
-             double[] pixLeftR = yCbCrR.get((int)(input.rows()* leftPos[1]), (int)(input.cols()* leftPos[0]));//gets value at circle
-             valLeftR = (int)pixLeftR[0];
-
-             double[] pixRightR = yCbCrR.get((int)(input.rows()* rightPos[1]), (int)(input.cols()* rightPos[0]));//gets value at circle
-             valRightR = (int)pixRightR[0];
-             **/
 
             //create three points
             Point pointMid = new Point((int)(input.cols()* midPos[0]), (int)(input.rows()* midPos[1]));

@@ -24,6 +24,7 @@ public class TeleopMain extends LinearOpMode {
     private Servo stab;
     private Servo planeLauncher;
     private Servo winch_release;
+    private DcMotor arm_tilt;
 
 
 
@@ -54,6 +55,7 @@ public class TeleopMain extends LinearOpMode {
         planeLauncher = hardwareMap.get(Servo.class, "planeLauncher");
         winch_release = hardwareMap.get(Servo.class, "winch release");
         winch = hardwareMap.get(DcMotor.class, "winch");
+        arm_tilt = hardwareMap.get(DcMotor.class, "arm_tilt");
 
         // set motor directions on initialization
         topleftmotor.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -140,6 +142,15 @@ public class TeleopMain extends LinearOpMode {
                     planeLauncher.setPosition(1);
                     planeToggle = false;
                     planeHeld = true;
+                }
+                if (gamepad1.x){
+                    arm_tilt.setPower(-1);
+                }
+                if (gamepad1.y){
+                    arm_tilt.setPower(1);
+                }
+                else {
+                    arm_tilt.setPower(0);
                 }
 
 
