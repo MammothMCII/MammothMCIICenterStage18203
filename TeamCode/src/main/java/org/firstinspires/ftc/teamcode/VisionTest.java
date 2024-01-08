@@ -109,9 +109,7 @@ public class VisionTest extends LinearOpMode {
         drive.setPoseEstimate(startPose);
 
         //build trajectories
-        //26, 6.5, 15.5, 31
 
-        //blueM
         Trajectory Red_Forward = drive.trajectoryBuilder(startPose)
                 .forward(26)
                 .build();
@@ -138,7 +136,13 @@ public class VisionTest extends LinearOpMode {
         Trajectory RedC_Return = drive.trajectoryBuilder(RedC_Back.end())
                 .strafeRight(90)
                 .build();
-
+        
+        Trajectory RedL_To_Tape = drive.trajectoryBuilder(startPose)
+                .lineTo(new Vector2d(-31, -34))
+                .build();
+        Trajectory RedL_ReturnL = drive.trajectoryBuilder(RedL_To_Tape.end())
+                .lineTo(new Vector2d(-31, 70))  //change the Y value to something more correct later
+                .build();
 
         waitForStart();
         runtime.reset();
@@ -171,12 +175,18 @@ public class VisionTest extends LinearOpMode {
 
 
                 if (valLeftR != 0) {
+                    drive.followTrajectory(RedL_To_Tape);
+                    /* 
                     drive.followTrajectory(Red_Forward);
                     drive.followTrajectory(RedL_Left);
+                    */
                     arm_tilt.setPower(1);
                     sleep(500);
                     arm_tilt.setPower(0);
+                    drive.followTrajectory(RedL_ReturnL);
+                    /* 
                     drive.followTrajectory(RedL_Return);
+                    */
                 }
                 if (valRightR != 0) {
                     drive.followTrajectory(Red_Forward);
