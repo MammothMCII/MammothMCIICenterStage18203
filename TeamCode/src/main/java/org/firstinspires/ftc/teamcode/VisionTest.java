@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.apache.commons.math3.stat.descriptive.rank.Max;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
@@ -64,6 +66,8 @@ public class VisionTest extends LinearOpMode {
     private static int valLeftR = -1;
     private static int valRightR = -1;
 
+    private static int max = 0;
+
 
     private static float rectHeight = .6f/8f;
     private static float rectWidth = 1.5f/8f;
@@ -73,7 +77,7 @@ public class VisionTest extends LinearOpMode {
 
     private static float[] midPos = {4f/8f+offsetX, 4.1f/8f+offsetY};//0 = col, 1 = row
     private static float[] leftPos = {0.5f/8f+offsetX, 4f/8f+offsetY};
-    private static float[] rightPos = {7.5f/8f+offsetX, 4f/8f+offsetY};
+    private static float[] rightPos = {7.4f/8f+offsetX, 4f/8f+offsetY};
     //moves all rectangles right or left by amount. units are in ratio to monitor
 
     private final int rows = 1280;
@@ -104,46 +108,46 @@ public class VisionTest extends LinearOpMode {
         //roadrunner initialization
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
 
-        Pose2d startPose = new Pose2d(-39, -60, Math.toRadians(0));
+        Pose2d startPoseRed = new Pose2d(-39, -60, Math.toRadians(90));
 
-        drive.setPoseEstimate(startPose);
+        Pose2d startPoseBlue = new Pose2d(-32.5, 60, Math.toRadians(-90));
+
+
 
         //build trajectories
 
-        Trajectory Red_Forward = drive.trajectoryBuilder(startPose)
-                .forward(26)
-                .build();
-        Trajectory RedL_Left = drive.trajectoryBuilder(Red_Forward.end())
-                .strafeLeft(8)
-                .build();
-        Trajectory RedL_Return = drive.trajectoryBuilder(RedL_Left.end())
-                .strafeRight(100)
-                .build();
 
-        Trajectory RedR_Right = drive.trajectoryBuilder(Red_Forward.end())
-                .strafeRight(16.5)
-                .build();
-        Trajectory RedR_Return = drive.trajectoryBuilder(RedR_Right.end())
-                .strafeRight(85)
-                .build();
 
-        Trajectory RedC_Forward = drive.trajectoryBuilder(startPose)
-                .forward(31)
-                .build();
-        Trajectory RedC_Back = drive.trajectoryBuilder(RedC_Forward.end())
-                .back(5)
-                .build();
-        Trajectory RedC_Return = drive.trajectoryBuilder(RedC_Back.end())
-                .strafeRight(90)
-                .build();
-        
-        Trajectory RedL_To_Tape = drive.trajectoryBuilder(startPose)
-                .lineTo(new Vector2d(-31, -34))
+        // red L
+        Trajectory RedL_To_Tape = drive.trajectoryBuilder(startPoseRed)
+                .lineTo(new Vector2d(-47, -34))
                 .build();
         Trajectory RedL_ReturnL = drive.trajectoryBuilder(RedL_To_Tape.end())
-                .lineTo(new Vector2d(-31, 70))  //change the Y value to something more correct later
+                .lineTo(new Vector2d(53, -34))
                 .build();
 
+        // red M
+        Trajectory RedM_To_Tape = drive.trajectoryBuilder(startPoseRed)
+                .lineTo(new Vector2d(-39, -30))
+                .build();
+        Trajectory RedM_Reverse = drive.trajectoryBuilder(RedM_To_Tape.end())
+                .lineTo(new Vector2d(-39, -34))
+                .build();
+        Trajectory RedM_Return = drive.trajectoryBuilder(RedM_Reverse.end())
+                .lineTo(new Vector2d(53, -34))
+                .build();
+
+        // red R
+        Trajectory RedR_To_Tape = drive.trajectoryBuilder(startPoseRed)
+                .splineToConstantHeading(new Vector2d(-24, -34), Math.toRadians(-90))
+                .build();
+
+        Trajectory RedR_Return = drive.trajectoryBuilder(RedR_To_Tape.end())
+                .lineTo(new Vector2d(53, -34))
+                .build();
+
+        telemetry.addData("Robot has initialized", 0);
+        telemetry.update();
         waitForStart();
         runtime.reset();
         while (opModeIsActive()) {
@@ -152,57 +156,56 @@ public class VisionTest extends LinearOpMode {
 
 
 
-
             telemetry.update();
             sleep(100);
 
-            if (valLeft != -1 || valRight != -1 || valMid != -1 || valLeftR != -1 || valRightR != -1 || valMidR != -1 || valLeft != 0 || valRight != 0 || valMid != 0 || valLeftR != 0 || valRightR != 0 || valMidR != 0) {
+            while (valLeft != -1 || valRight != -1 || valMid != -1 || valLeftR != -1 || valRightR != -1 || valMidR != -1) {
                 telemetry.addData("Values B", valLeft+"   "+valMid+"   "+valRight);
                 telemetry.addData("Values R", valLeftR+"   "+valMidR+"   "+valRightR);
+                telemetry.addData("max", max);
                 telemetry.update();
+
 
                 if(isStopRequested()) return;
 
-                if (valLeft != 0) {
 
+                if (valLeft == max || valMid == max || valRight == max) {
+                    drive.setPoseEstimate(startPoseBlue);
+                    if (valLeft == max) {
+                        //blue left
+                    }
+                    if (valRight == max) {
+                        //Blue Right
+                    }
+                    if (valMid == max) {
+                        //Blue mid
+                    }
                 }
-                if (valRight != 0) {
-                    //Blue Right
-                }
-                if (valMid != 0) {
-                    //Blue mid
-                }
-
-
-                if (valLeftR != 0) {
-                    drive.followTrajectory(RedL_To_Tape);
-                    /* 
-                    drive.followTrajectory(Red_Forward);
-                    drive.followTrajectory(RedL_Left);
-                    */
-                    arm_tilt.setPower(1);
-                    sleep(500);
-                    arm_tilt.setPower(0);
-                    drive.followTrajectory(RedL_ReturnL);
-                    /* 
-                    drive.followTrajectory(RedL_Return);
-                    */
-                }
-                if (valRightR != 0) {
-                    drive.followTrajectory(Red_Forward);
-                    drive.followTrajectory(RedR_Right);
-                    arm_tilt.setPower(1);
-                    sleep(500);
-                    arm_tilt.setPower(0);
-                    drive.followTrajectory(RedR_Return);
-                }
-                if (valMidR != 0) {
-                    drive.followTrajectory(RedC_Forward);
-                    arm_tilt.setPower(1);
-                    sleep(500);
-                    arm_tilt.setPower(0);
-                    drive.followTrajectory(RedC_Back);
-                    drive.followTrajectory(RedC_Return);
+                if (valLeftR == max || valMidR == max || valRightR == max) {
+                    drive.setPoseEstimate(startPoseRed);
+                    if (valLeftR == max) {
+                        drive.followTrajectory(RedL_To_Tape);
+                        arm_tilt.setPower(1);
+                        sleep(500);
+                        arm_tilt.setPower(0);
+                        drive.followTrajectory(RedL_ReturnL);
+                        sleep(1233456); // without this sleep the robot will follow and extra trajectory, dont know why
+                    }
+                    if (valRightR == max) {
+                        drive.followTrajectory(RedR_To_Tape);
+                        arm_tilt.setPower(1);
+                        sleep(500);
+                        arm_tilt.setPower(0);
+                        drive.followTrajectory(RedR_Return);
+                    }
+                    if (valMidR == max) {
+                        drive.followTrajectory(RedM_To_Tape);
+                        arm_tilt.setPower(1);
+                        sleep(500);
+                        arm_tilt.setPower(0);
+                        drive.followTrajectory(RedM_Reverse);
+                        drive.followTrajectory(RedM_Return);
+                    }
                 }
 
                 sleep(1233456);
@@ -267,36 +270,33 @@ public class VisionTest extends LinearOpMode {
             Core.extractChannel(yCbCrChan2Mat, yCbCrChan2Mat, 2);//takes cb difference and stores
 
             Imgproc.cvtColor(input, yCbCrR, Imgproc.COLOR_RGB2YCrCb);//converts rgb to ycrcb
-            Core.extractChannel(yCbCrR, yCbCrR, 1);//takes ? difference and stores
+            Core.extractChannel(yCbCrR, yCbCrR, 1);//takes cr difference and stores
 
-            //b&w
-            Imgproc.threshold(yCbCrChan2Mat, thresholdMat, 148, 255, Imgproc.THRESH_BINARY);
-            Imgproc.threshold(yCbCrR, thresholdR, 150, 255, Imgproc.THRESH_BINARY);
-
-            //outline/contour dont know what this does
-            //Imgproc.findContours(thresholdMat, contoursList, new Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
             yCbCrChan2Mat.copyTo(all);//copies mat object
-            //Imgproc.drawContours(all, contoursList, -1, new Scalar(255, 0, 0), 3, 8);//draws blue contours
 
 
-            //get values from frame
-            double[] pixMid = thresholdMat.get((int)(input.rows()* midPos[1]), (int)(input.cols()* midPos[0]));//gets value at circle
+
+            double[] pixMid = yCbCrChan2Mat.get((int)(input.rows()* midPos[1]), (int)(input.cols()* midPos[0]));//gets value at circle
             valMid = (int)pixMid[0];
 
-            double[] pixLeft = thresholdMat.get((int)(input.rows()* leftPos[1]), (int)(input.cols()* leftPos[0]));//gets value at circle
+            double[] pixLeft = yCbCrChan2Mat.get((int)(input.rows()* leftPos[1]), (int)(input.cols()* leftPos[0]));//gets value at circle
             valLeft = (int)pixLeft[0];
 
-            double[] pixRight = thresholdMat.get((int)(input.rows()* rightPos[1]), (int)(input.cols()* rightPos[0]));//gets value at circle
+            double[] pixRight = yCbCrChan2Mat.get((int)(input.rows()* rightPos[1]), (int)(input.cols()* rightPos[0]));//gets value at circle
             valRight = (int)pixRight[0];
 
-            double[] pixMidR = thresholdR.get((int)(input.rows()* midPos[1]), (int)(input.cols()* midPos[0]));//gets value at circle
+            double[] pixMidR = yCbCrR.get((int)(input.rows()* midPos[1]), (int)(input.cols()* midPos[0]));//gets value at circle
             valMidR = (int)pixMidR[0];
 
-            double[] pixLeftR = thresholdR.get((int)(input.rows()* leftPos[1]), (int)(input.cols()* leftPos[0]));//gets value at circle
+            double[] pixLeftR = yCbCrR.get((int)(input.rows()* leftPos[1]), (int)(input.cols()* leftPos[0]));//gets value at circle
             valLeftR = (int)pixLeftR[0];
 
-            double[] pixRightR = thresholdR.get((int)(input.rows()* rightPos[1]), (int)(input.cols()* rightPos[0]));//gets value at circle
+            double[] pixRightR = yCbCrR.get((int)(input.rows()* rightPos[1]), (int)(input.cols()* rightPos[0]));//gets value at circle
             valRightR = (int)pixRightR[0];
+
+
+            max = Math.max(valMid, Math.max(valLeft, Math.max(valRight, Math.max(valLeftR, Math.max(valMidR, valRightR)))));
+
 
 
 
