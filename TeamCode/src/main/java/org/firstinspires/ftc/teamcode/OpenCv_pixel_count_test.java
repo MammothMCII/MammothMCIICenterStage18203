@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.List;
 
-@Autonomous(name= "opencvSkystoneDetector", group="autonomous")
+@Autonomous(name= "opencvDetector", group="autonomous")
 //@Disabled//comment out this line before using
 // this program would be used to find where the pixels l be tested and what threshold values to use
 public class OpenCv_pixel_count_test extends LinearOpMode {
@@ -56,6 +56,10 @@ public class OpenCv_pixel_count_test extends LinearOpMode {
     private static int valMidR = -1;
     private static int valLeftR = -1;
     private static int valRightR = -1;
+
+    private static int valMidY = -1;
+    private static int valLeftY = -1;
+    private static int valRightY = -1;
 
     private static float rectHeight = .6f/8f;
     private static float rectWidth = 1.5f/8f;
@@ -92,6 +96,7 @@ public class OpenCv_pixel_count_test extends LinearOpMode {
         while (opModeIsActive()) {
             telemetry.addData("Values B", valLeft+"   "+valMid+"   "+valRight);
             telemetry.addData("Values R", valLeftR+"   "+valMidR+"   "+valRightR);
+            //telemetry.addData("Values Y", valLeftY+"   "+valMidY+"   "+valRightY);
             telemetry.addData("Height", rows);
             telemetry.addData("Width", cols);
 
@@ -112,6 +117,7 @@ public class OpenCv_pixel_count_test extends LinearOpMode {
         Mat yCbCrChan2Mat = new Mat();
         Mat yCbCrR = new Mat();
         Mat thresholdMat = new Mat();
+        Mat ycbCrY = new Mat();
         Mat thresholdR = new Mat();
         Mat all = new Mat();
         List<MatOfPoint> contoursList = new ArrayList<>();
@@ -164,6 +170,9 @@ public class OpenCv_pixel_count_test extends LinearOpMode {
             Imgproc.cvtColor(input, yCbCrR, Imgproc.COLOR_RGB2YCrCb);//converts rgb to ycrcb
             Core.extractChannel(yCbCrR, yCbCrR, 1);//takes ? difference and stores
 
+            Imgproc.cvtColor(input, ycbCrY, Imgproc.COLOR_RGB2YCrCb);//converts rgb to ycrcb
+            Core.extractChannel(ycbCrY, ycbCrY, 0);//takes ? difference and stores
+
             //b&w
             //Imgproc.threshold(yCbCrChan2Mat, thresholdMat, 148, 255, Imgproc.THRESH_BINARY);
             //Imgproc.threshold(yCbCrR, thresholdR, 150, 255, Imgproc.THRESH_BINARY);
@@ -211,6 +220,15 @@ public class OpenCv_pixel_count_test extends LinearOpMode {
 
             double[] pixRightR = yCbCrR.get((int)(input.rows()* rightPos[1]), (int)(input.cols()* rightPos[0]));//gets value at circle
             valRightR = (int)pixRightR[0];
+
+            double[] pixMidY = yCbCrR.get((int)(input.rows()* midPos[1]), (int)(input.cols()* midPos[0]));//gets value at circle
+            valMidY = (int)pixMidR[0];
+
+            double[] pixLeftY = yCbCrR.get((int)(input.rows()* leftPos[1]), (int)(input.cols()* leftPos[0]));//gets value at circle
+            valLeftY = (int)pixLeftR[0];
+
+            double[] pixRightY = yCbCrR.get((int)(input.rows()* rightPos[1]), (int)(input.cols()* rightPos[0]));//gets value at circle
+            valRightY = (int)pixRightR[0];
 
 
             //create three points

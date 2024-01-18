@@ -77,7 +77,7 @@ public class VisionTest extends LinearOpMode {
 
     private static float[] midPos = {4f/8f+offsetX, 4.1f/8f+offsetY};//0 = col, 1 = row
     private static float[] leftPos = {0.5f/8f+offsetX, 4f/8f+offsetY};
-    private static float[] rightPos = {7.4f/8f+offsetX, 4f/8f+offsetY};
+    private static float[] rightPos = {7.5f/8f+offsetX, 4f/8f+offsetY};
     //moves all rectangles right or left by amount. units are in ratio to monitor
 
     private final int rows = 1280;
@@ -110,7 +110,7 @@ public class VisionTest extends LinearOpMode {
 
         Pose2d startPoseRed = new Pose2d(-39, -60, Math.toRadians(90));
 
-        Pose2d startPoseBlue = new Pose2d(-32.5, 60, Math.toRadians(-90));
+        Pose2d startPoseBlue = new Pose2d(-30, 60, Math.toRadians(-90));
 
 
 
@@ -139,11 +139,40 @@ public class VisionTest extends LinearOpMode {
 
         // red R
         Trajectory RedR_To_Tape = drive.trajectoryBuilder(startPoseRed)
-                .splineToConstantHeading(new Vector2d(-24, -34), Math.toRadians(-90))
+                .splineToConstantHeading(new Vector2d(-24, -34), Math.toRadians(0))
                 .build();
 
         Trajectory RedR_Return = drive.trajectoryBuilder(RedR_To_Tape.end())
                 .lineTo(new Vector2d(53, -34))
+                .build();
+
+
+        // Blue R
+        Trajectory BlueR_To_Tape = drive.trajectoryBuilder(startPoseBlue)
+                .lineTo(new Vector2d(-47, 34))
+                .build();
+        Trajectory BlueR_Return = drive.trajectoryBuilder(BlueR_To_Tape.end())
+                .lineTo(new Vector2d(53, 34))
+                .build();
+
+        // Blue M
+        Trajectory BlueM_To_Tape = drive.trajectoryBuilder(startPoseBlue)
+                .lineTo(new Vector2d(-39, 30))
+                .build();
+        Trajectory BlueM_Reverse = drive.trajectoryBuilder(BlueM_To_Tape.end())
+                .lineTo(new Vector2d(-39, 34))
+                .build();
+        Trajectory BlueM_Return = drive.trajectoryBuilder(BlueM_Reverse.end())
+                .lineTo(new Vector2d(53, 34))
+                .build();
+
+        // Blue L
+        Trajectory BlueL_To_Tape = drive.trajectoryBuilder(startPoseBlue)
+                .splineToConstantHeading(new Vector2d(-23, 34), Math.toRadians(0))
+                .build();
+
+        Trajectory BlueL_Return = drive.trajectoryBuilder(BlueL_To_Tape.end())
+                .lineTo(new Vector2d(53, 34))
                 .build();
 
         telemetry.addData("Robot has initialized", 0);
@@ -173,12 +202,31 @@ public class VisionTest extends LinearOpMode {
                     drive.setPoseEstimate(startPoseBlue);
                     if (valLeft == max) {
                         //blue left
+                        drive.followTrajectory(BlueL_To_Tape);
+                        arm_tilt.setPower(1);
+                        sleep(500);
+                        arm_tilt.setPower(0);
+                        drive.followTrajectory(BlueL_Return);
+                        sleep(1233456);
                     }
                     if (valRight == max) {
                         //Blue Right
+                        drive.followTrajectory(BlueR_To_Tape);
+                        arm_tilt.setPower(1);
+                        sleep(500);
+                        arm_tilt.setPower(0);
+                        drive.followTrajectory(BlueR_Return);
+                        sleep(1233456);
                     }
                     if (valMid == max) {
                         //Blue mid
+                        drive.followTrajectory(BlueM_To_Tape);
+                        arm_tilt.setPower(1);
+                        sleep(500);
+                        arm_tilt.setPower(0);
+                        drive.followTrajectory(BlueM_Reverse);
+                        drive.followTrajectory(BlueM_Return);
+                        sleep(1233456);
                     }
                 }
                 if (valLeftR == max || valMidR == max || valRightR == max) {
@@ -197,6 +245,7 @@ public class VisionTest extends LinearOpMode {
                         sleep(500);
                         arm_tilt.setPower(0);
                         drive.followTrajectory(RedR_Return);
+                        sleep(1233456);
                     }
                     if (valMidR == max) {
                         drive.followTrajectory(RedM_To_Tape);
@@ -205,10 +254,11 @@ public class VisionTest extends LinearOpMode {
                         arm_tilt.setPower(0);
                         drive.followTrajectory(RedM_Reverse);
                         drive.followTrajectory(RedM_Return);
+                        sleep(1233456);
                     }
                 }
 
-                sleep(1233456);
+
             }
 
         }
