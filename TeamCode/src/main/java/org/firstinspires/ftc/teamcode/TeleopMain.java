@@ -20,11 +20,14 @@ public class TeleopMain extends LinearOpMode {
     private TouchSensor armsafetybutton;
     private TouchSensor armlimitbutton;
     private DcMotor winch;
-    private Servo scoop;
-    private Servo stab;
+
     private Servo planeLauncher;
     private Servo winch_release;
+    private Servo top_grip;
+    private Servo hand_tilt;
+    private Servo bottom_grip;
     private DcMotor arm_tilt;
+    private DcMotor arm_slide;
 
 
 
@@ -41,27 +44,42 @@ public class TeleopMain extends LinearOpMode {
         double arm_tilt_speed = 0;
         boolean launcher = false;
         double launcher_timer = 0;
+        boolean winchToggle = false;
+        boolean winchOn = false;
         boolean planeToggle = false;
-        boolean planeHeld = false;
+        boolean planeOn = false;
+        boolean topToggle = false;
+        boolean topOn = false;
+        boolean bottomToggle = false;
+        boolean bottomOn = false;
+        boolean tiltToggle = false;
+        boolean tiltOn = false;
+
+
 
         topleftmotor = hardwareMap.get(DcMotor.class, "top left motor");
         bottomleftmotor = hardwareMap.get(DcMotor.class, "bottom left motor");
         toprightmotor = hardwareMap.get(DcMotor.class, "top right motor");
         bottomrightmotor = hardwareMap.get(DcMotor.class, "bottom right motor");
         armsafetybutton = hardwareMap.get(TouchSensor.class, "arm safety button");
-        scoop = hardwareMap.get(Servo.class, "scoop");
-        stab = hardwareMap.get(Servo.class, "stab");
+
         armlimitbutton = hardwareMap.get(TouchSensor.class, "arm limit button");
         planeLauncher = hardwareMap.get(Servo.class, "planeLauncher");
         winch_release = hardwareMap.get(Servo.class, "winch release");
+        top_grip = hardwareMap.get(Servo.class, "top_grip");
+        bottom_grip = hardwareMap.get(Servo.class, "bottom_grip");
+        hand_tilt = hardwareMap.get(Servo.class, "hand_tilt");
         winch = hardwareMap.get(DcMotor.class, "winch");
         arm_tilt = hardwareMap.get(DcMotor.class, "arm_tilt");
+        arm_slide = hardwareMap.get(DcMotor.class, "arm_slide");
 
         // set motor directions on initialization
         topleftmotor.setDirection(DcMotorSimple.Direction.FORWARD);
         bottomleftmotor.setDirection(DcMotorSimple.Direction.FORWARD);
         toprightmotor.setDirection(DcMotorSimple.Direction.REVERSE);
         bottomrightmotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        hand_tilt.setPosition(0);
+
 
         waitForStart();
         if (opModeIsActive()) {
@@ -100,12 +118,61 @@ public class TeleopMain extends LinearOpMode {
                     winch.setPower(0);
                 }
 
-                if (gamepad1.dpad_left) {
-                    winch_release.setPosition(1);
+                if (gamepad1.a) {
+                    arm_slide.setPower(0.75);
                 }
-                if (gamepad1.dpad_right) {
-                    winch_release.setPosition(0.4);
+                else if (gamepad1.b && !armsafetybutton.isPressed()) {
+                    arm_slide.setPower(-0.5);
                 }
+                else{
+                    arm_slide.setPower(0);
+                }
+
+                if (gamepad1.dpad_left && !winchToggle) {
+                    if (winchOn == false) {winch_release.setPosition(1); winchOn = true;}
+                    else {winch_release.setPosition(0.4);
+
+                        winchOn = false;
+                    }
+                    winchToggle = true;
+                }
+                else if (!gamepad1.dpad_left) winchToggle = false;
+
+
+
+                if (gamepad1.left_bumper && !topToggle) {
+                    if (topOn == false) {top_grip.setPosition(0); topOn = true;}
+                    else {top_grip.setPosition(1);
+
+                        topOn = false;
+                    }
+                    topToggle = true;
+                }
+                else if (!gamepad1.left_bumper) topToggle = false;
+
+
+                if (gamepad1.right_bumper && !bottomToggle) {
+                    if (bottomOn == false) {bottom_grip.setPosition(1); bottomOn = true;}
+                    else {bottom_grip.setPosition(0);
+
+                        bottomOn = false;
+                    }
+                    bottomToggle = true;
+                }
+                else if (!gamepad1.right_bumper) bottomToggle = false;
+
+
+
+                if (gamepad1.touchpad && !tiltToggle) {
+                    if (tiltOn == false) {hand_tilt.setPosition(1); tiltOn = true;}
+                    else {hand_tilt.setPosition(0);
+
+                        tiltOn = false;
+                    }
+                    tiltToggle = true;
+                }
+                else if (!gamepad1.touchpad) tiltToggle = false;
+
 
                 /**
                 //this will be the real stuff
@@ -123,26 +190,17 @@ public class TeleopMain extends LinearOpMode {
                 }
                 **/
 
-                // opens grabber
-                if (gamepad1.left_bumper) {
-                    scoop.setPosition(0.7);
-                    stab.setPosition(0.3);
-                }
-                // closes grabber
-                if (gamepad1.right_bumper) {
-                    scoop.setPosition(0.1);
-                    stab.setPosition(0.9);
-                }
-                if (gamepad1.a){
-                    planeLauncher.setPosition(0);
+                if (gamepad1.dpad_right && !planeToggle) {
+                    if (planeOn == false) {planeLauncher.setPosition(1); planeOn = true;}
+                    else {planeLauncher.setPosition(0);
+
+                        planeOn = false;
+                    }
                     planeToggle = true;
-                    planeHeld = true;
                 }
-                if (gamepad1.b){
-                    planeLauncher.setPosition(1);
-                    planeToggle = false;
-                    planeHeld = true;
-                }
+                else if (!gamepad1.dpad_right) planeToggle = false;
+
+
                 if (gamepad1.x){
                     arm_tilt.setPower(-1);
                 }
@@ -160,4 +218,5 @@ public class TeleopMain extends LinearOpMode {
             }
         }
     }
+
 }

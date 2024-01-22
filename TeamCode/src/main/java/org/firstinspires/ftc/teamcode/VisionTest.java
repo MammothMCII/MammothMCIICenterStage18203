@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.apache.commons.math3.stat.descriptive.rank.Max;
@@ -88,9 +89,20 @@ public class VisionTest extends LinearOpMode {
 
     private DcMotor arm_tilt;
 
+    private Servo top_grip;
+    private Servo hand_tilt;
+    private Servo bottom_grip;
+    private DcMotor arm_slide;
+
 
     @Override
     public void runOpMode() throws InterruptedException {
+
+        top_grip = hardwareMap.get(Servo.class, "top_grip");
+        bottom_grip = hardwareMap.get(Servo.class, "bottom_grip");
+        hand_tilt = hardwareMap.get(Servo.class, "hand_tilt");
+        arm_tilt = hardwareMap.get(DcMotor.class, "arm_tilt");
+        arm_slide = hardwareMap.get(DcMotor.class, "arm_slide");
 
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
 
@@ -175,6 +187,10 @@ public class VisionTest extends LinearOpMode {
                 .lineTo(new Vector2d(53, 34))
                 .build();
 
+        hand_tilt.setPosition(0);
+        bottom_grip.setPosition(1);
+        top_grip.setPosition(0);
+
         telemetry.addData("Robot has initialized", 0);
         telemetry.update();
         waitForStart();
@@ -183,10 +199,11 @@ public class VisionTest extends LinearOpMode {
             telemetry.addData("Values B", valLeft+"   "+valMid+"   "+valRight);
             telemetry.addData("Values R", valLeftR+"   "+valMidR+"   "+valRightR);
 
-
-
             telemetry.update();
             sleep(100);
+
+            hand_tilt.setPosition(0);
+            sleep(500);
 
             while (valLeft != -1 || valRight != -1 || valMid != -1 || valLeftR != -1 || valRightR != -1 || valMidR != -1) {
                 telemetry.addData("Values B", valLeft+"   "+valMid+"   "+valRight);
@@ -203,27 +220,21 @@ public class VisionTest extends LinearOpMode {
                     if (valLeft == max) {
                         //blue left
                         drive.followTrajectory(BlueL_To_Tape);
-                        arm_tilt.setPower(1);
-                        sleep(500);
-                        arm_tilt.setPower(0);
+                        dropPixel();
                         drive.followTrajectory(BlueL_Return);
                         sleep(1233456);
                     }
                     if (valRight == max) {
                         //Blue Right
                         drive.followTrajectory(BlueR_To_Tape);
-                        arm_tilt.setPower(1);
-                        sleep(500);
-                        arm_tilt.setPower(0);
+                        dropPixel();
                         drive.followTrajectory(BlueR_Return);
                         sleep(1233456);
                     }
                     if (valMid == max) {
                         //Blue mid
                         drive.followTrajectory(BlueM_To_Tape);
-                        arm_tilt.setPower(1);
-                        sleep(500);
-                        arm_tilt.setPower(0);
+                        dropPixel();
                         drive.followTrajectory(BlueM_Reverse);
                         drive.followTrajectory(BlueM_Return);
                         sleep(1233456);
@@ -233,25 +244,19 @@ public class VisionTest extends LinearOpMode {
                     drive.setPoseEstimate(startPoseRed);
                     if (valLeftR == max) {
                         drive.followTrajectory(RedL_To_Tape);
-                        arm_tilt.setPower(1);
-                        sleep(500);
-                        arm_tilt.setPower(0);
+                        dropPixel();
                         drive.followTrajectory(RedL_ReturnL);
                         sleep(1233456); // without this sleep the robot will follow and extra trajectory, dont know why
                     }
                     if (valRightR == max) {
                         drive.followTrajectory(RedR_To_Tape);
-                        arm_tilt.setPower(1);
-                        sleep(500);
-                        arm_tilt.setPower(0);
+                        dropPixel();
                         drive.followTrajectory(RedR_Return);
                         sleep(1233456);
                     }
                     if (valMidR == max) {
                         drive.followTrajectory(RedM_To_Tape);
-                        arm_tilt.setPower(1);
-                        sleep(500);
-                        arm_tilt.setPower(0);
+                        dropPixel();
                         drive.followTrajectory(RedM_Reverse);
                         drive.followTrajectory(RedM_Return);
                         sleep(1233456);
@@ -413,5 +418,15 @@ public class VisionTest extends LinearOpMode {
             }
         }
 
+    }
+    public void dropPixel(){
+        bottom_grip.setPosition(0);
+        top_grip.setPosition(1);
+        sleep(200);
+        arm_slide.setPower(1);
+        arm_tilt.setPower(1);
+        sleep(700);
+        arm_slide.setPower(0);
+        arm_tilt.setPower(0);
     }
 }
