@@ -26,7 +26,6 @@ public class TeleopMain extends LinearOpMode {
     private Servo top_grip;
     private Servo hand_tilt;
     private Servo bottom_grip;
-    private DcMotor arm_tilt;
     private DcMotor arm_slide;
 
 
@@ -70,7 +69,6 @@ public class TeleopMain extends LinearOpMode {
         bottom_grip = hardwareMap.get(Servo.class, "bottom_grip");
         hand_tilt = hardwareMap.get(Servo.class, "hand_tilt");
         winch = hardwareMap.get(DcMotor.class, "winch");
-        arm_tilt = hardwareMap.get(DcMotor.class, "arm_tilt");
         arm_slide = hardwareMap.get(DcMotor.class, "arm_slide");
 
         // set motor directions on initialization
@@ -78,7 +76,9 @@ public class TeleopMain extends LinearOpMode {
         bottomleftmotor.setDirection(DcMotorSimple.Direction.FORWARD);
         toprightmotor.setDirection(DcMotorSimple.Direction.REVERSE);
         bottomrightmotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        hand_tilt.setPosition(0);
+
+        bottom_grip.setPosition(0);
+        top_grip.setPosition(1);
 
 
         waitForStart();
@@ -118,11 +118,11 @@ public class TeleopMain extends LinearOpMode {
                     winch.setPower(0);
                 }
 
-                if (gamepad1.a) {
-                    arm_slide.setPower(0.75);
+                if (gamepad1.b && !armlimitbutton.isPressed()) {
+                    arm_slide.setPower(1);
                 }
-                else if (gamepad1.b && !armsafetybutton.isPressed()) {
-                    arm_slide.setPower(-0.5);
+                else if (gamepad1.a && !armsafetybutton.isPressed()) {
+                    arm_slide.setPower(-1);
                 }
                 else{
                     arm_slide.setPower(0);
@@ -163,15 +163,21 @@ public class TeleopMain extends LinearOpMode {
 
 
 
-                if (gamepad1.touchpad && !tiltToggle) {
-                    if (tiltOn == false) {hand_tilt.setPosition(1); tiltOn = true;}
-                    else {hand_tilt.setPosition(0);
+                if (gamepad1.y && !tiltToggle) {
+                    if (tiltOn == false) {hand_tilt.setPosition(0.2); tiltOn = true;}
+                    else {hand_tilt.setPosition(0.48);
 
                         tiltOn = false;
                     }
                     tiltToggle = true;
                 }
-                else if (!gamepad1.touchpad) tiltToggle = false;
+                else if (!gamepad1.y) tiltToggle = false;
+
+
+                //wiggle
+                if (gamepad1.x) {
+                    wiggle();
+                }
 
 
                 /**
@@ -201,22 +207,34 @@ public class TeleopMain extends LinearOpMode {
                 else if (!gamepad1.dpad_right) planeToggle = false;
 
 
-                if (gamepad1.x){
-                    arm_tilt.setPower(-1);
-                }
-                if (gamepad1.y){
-                    arm_tilt.setPower(1);
-                }
-                else {
-                    arm_tilt.setPower(0);
-                }
-
 
 
 
                 telemetry.update();
             }
         }
+    }
+
+    public void wiggle() {
+        int frequency = 15;
+        arm_slide.setPower(-1);
+        bottomleftmotor.setPower(-1);
+        bottomrightmotor.setPower(-1);
+        topleftmotor.setPower(-1);
+        toprightmotor.setPower(-1);
+        sleep(frequency);
+        arm_slide.setPower(1);
+        bottomleftmotor.setPower(1);
+        bottomrightmotor.setPower(1);
+        topleftmotor.setPower(1);
+        toprightmotor.setPower(1);
+        sleep(frequency);
+        arm_slide.setPower(0);
+        bottomleftmotor.setPower(0);
+        bottomrightmotor.setPower(0);
+        topleftmotor.setPower(0);
+        toprightmotor.setPower(0);
+
     }
 
 }

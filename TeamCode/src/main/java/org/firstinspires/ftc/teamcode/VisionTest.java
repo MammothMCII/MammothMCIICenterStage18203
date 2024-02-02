@@ -21,6 +21,8 @@ import org.openftc.easyopencv.OpenCvInternalCamera;
 import org.openftc.easyopencv.OpenCvPipeline;
 import org.opencv.core.Point;
 
+import java.util.Random;
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -132,7 +134,7 @@ public class VisionTest extends LinearOpMode {
 
         // red L
         Trajectory RedL_To_Tape = drive.trajectoryBuilder(startPoseRed)
-                .lineTo(new Vector2d(-47, -34))
+                .lineTo(new Vector2d(-48, -34))
                 .build();
         Trajectory RedL_ReturnL = drive.trajectoryBuilder(RedL_To_Tape.end())
                 .lineTo(new Vector2d(53, -34))
@@ -140,7 +142,7 @@ public class VisionTest extends LinearOpMode {
 
         // red M
         Trajectory RedM_To_Tape = drive.trajectoryBuilder(startPoseRed)
-                .lineTo(new Vector2d(-39, -30))
+                .lineTo(new Vector2d(-39, -29))
                 .build();
         Trajectory RedM_Reverse = drive.trajectoryBuilder(RedM_To_Tape.end())
                 .lineTo(new Vector2d(-39, -34))
@@ -169,7 +171,7 @@ public class VisionTest extends LinearOpMode {
 
         // Blue M
         Trajectory BlueM_To_Tape = drive.trajectoryBuilder(startPoseBlue)
-                .lineTo(new Vector2d(-39, 30))
+                .lineTo(new Vector2d(-39, 29))
                 .build();
         Trajectory BlueM_Reverse = drive.trajectoryBuilder(BlueM_To_Tape.end())
                 .lineTo(new Vector2d(-39, 34))
@@ -187,12 +189,12 @@ public class VisionTest extends LinearOpMode {
                 .lineTo(new Vector2d(53, 34))
                 .build();
 
-        hand_tilt.setPosition(0);
-        bottom_grip.setPosition(1);
-        top_grip.setPosition(0);
+        bottom_grip.setPosition(0);
+        top_grip.setPosition(1);
 
-        telemetry.addData("Robot has initialized", 0);
+        telemetry.addData("Robot has initialized", ")");
         telemetry.update();
+
         waitForStart();
         runtime.reset();
         while (opModeIsActive()) {
@@ -200,17 +202,13 @@ public class VisionTest extends LinearOpMode {
             telemetry.addData("Values R", valLeftR+"   "+valMidR+"   "+valRightR);
 
             telemetry.update();
-            sleep(100);
-
-            hand_tilt.setPosition(0);
-            sleep(500);
 
             while (valLeft != -1 || valRight != -1 || valMid != -1 || valLeftR != -1 || valRightR != -1 || valMidR != -1) {
                 telemetry.addData("Values B", valLeft+"   "+valMid+"   "+valRight);
                 telemetry.addData("Values R", valLeftR+"   "+valMidR+"   "+valRightR);
                 telemetry.addData("max", max);
                 telemetry.update();
-
+                hand_tilt.setPosition(0.48);
 
                 if(isStopRequested()) return;
 
@@ -246,7 +244,7 @@ public class VisionTest extends LinearOpMode {
                         drive.followTrajectory(RedL_To_Tape);
                         dropPixel();
                         drive.followTrajectory(RedL_ReturnL);
-                        sleep(1233456); // without this sleep the robot will follow and extra trajectory, dont know why
+                        sleep(1233456); // without this sleep the robot will follow an extra trajectory, dont know why
                     }
                     if (valRightR == max) {
                         drive.followTrajectory(RedR_To_Tape);
@@ -420,12 +418,12 @@ public class VisionTest extends LinearOpMode {
 
     }
     public void dropPixel(){
-        bottom_grip.setPosition(0);
-        top_grip.setPosition(1);
+        bottom_grip.setPosition(1);
+        //top_grip.setPosition(0);
         sleep(200);
         arm_slide.setPower(1);
         arm_tilt.setPower(1);
-        sleep(700);
+        sleep(500);
         arm_slide.setPower(0);
         arm_tilt.setPower(0);
     }
