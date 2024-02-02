@@ -163,10 +163,10 @@ public class VisionTest extends LinearOpMode {
 
         // Blue R
         Trajectory BlueR_To_Tape = drive.trajectoryBuilder(startPoseBlue)
-                .lineTo(new Vector2d(-47, 34))
+                .lineTo(new Vector2d(-47, 33))
                 .build();
         Trajectory BlueR_Return = drive.trajectoryBuilder(BlueR_To_Tape.end())
-                .lineTo(new Vector2d(53, 34))
+                .lineTo(new Vector2d(53, 33))
                 .build();
 
         // Blue M
@@ -174,19 +174,19 @@ public class VisionTest extends LinearOpMode {
                 .lineTo(new Vector2d(-39, 29))
                 .build();
         Trajectory BlueM_Reverse = drive.trajectoryBuilder(BlueM_To_Tape.end())
-                .lineTo(new Vector2d(-39, 34))
+                .lineTo(new Vector2d(-39, 33))
                 .build();
         Trajectory BlueM_Return = drive.trajectoryBuilder(BlueM_Reverse.end())
-                .lineTo(new Vector2d(53, 34))
+                .lineTo(new Vector2d(53, 33))
                 .build();
 
         // Blue L
         Trajectory BlueL_To_Tape = drive.trajectoryBuilder(startPoseBlue)
-                .splineToConstantHeading(new Vector2d(-23, 34), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(-22, 33), Math.toRadians(0))
                 .build();
 
         Trajectory BlueL_Return = drive.trajectoryBuilder(BlueL_To_Tape.end())
-                .lineTo(new Vector2d(53, 34))
+                .lineTo(new Vector2d(53, 33))
                 .build();
 
         bottom_grip.setPosition(0);
@@ -220,6 +220,7 @@ public class VisionTest extends LinearOpMode {
                         drive.followTrajectory(BlueL_To_Tape);
                         dropPixel();
                         drive.followTrajectory(BlueL_Return);
+                        top_grip.setPosition(0);
                         sleep(1233456);
                     }
                     if (valRight == max) {
@@ -227,6 +228,7 @@ public class VisionTest extends LinearOpMode {
                         drive.followTrajectory(BlueR_To_Tape);
                         dropPixel();
                         drive.followTrajectory(BlueR_Return);
+                        top_grip.setPosition(0);
                         sleep(1233456);
                     }
                     if (valMid == max) {
@@ -235,6 +237,7 @@ public class VisionTest extends LinearOpMode {
                         dropPixel();
                         drive.followTrajectory(BlueM_Reverse);
                         drive.followTrajectory(BlueM_Return);
+                        top_grip.setPosition(0);
                         sleep(1233456);
                     }
                 }
@@ -244,12 +247,14 @@ public class VisionTest extends LinearOpMode {
                         drive.followTrajectory(RedL_To_Tape);
                         dropPixel();
                         drive.followTrajectory(RedL_ReturnL);
+                        top_grip.setPosition(0);
                         sleep(1233456); // without this sleep the robot will follow an extra trajectory, dont know why
                     }
                     if (valRightR == max) {
                         drive.followTrajectory(RedR_To_Tape);
                         dropPixel();
                         drive.followTrajectory(RedR_Return);
+                        top_grip.setPosition(0);
                         sleep(1233456);
                     }
                     if (valMidR == max) {
@@ -257,6 +262,7 @@ public class VisionTest extends LinearOpMode {
                         dropPixel();
                         drive.followTrajectory(RedM_Reverse);
                         drive.followTrajectory(RedM_Return);
+                        top_grip.setPosition(0);
                         sleep(1233456);
                     }
                 }
@@ -423,8 +429,10 @@ public class VisionTest extends LinearOpMode {
         sleep(200);
         arm_slide.setPower(1);
         arm_tilt.setPower(1);
-        sleep(500);
+        sleep(100);
         arm_slide.setPower(0);
         arm_tilt.setPower(0);
+        hand_tilt.setPosition(0.2);
+
     }
 }
