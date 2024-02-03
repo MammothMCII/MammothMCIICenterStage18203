@@ -46,6 +46,19 @@ rr2 --> rr3[fancy spline]
 rr3 & rl3 --> f[position at backdrop]
 end
 
+subgraph Blue side
+BL([Blue Left]) --> bl1[pixel coordinate]
+bl1 --> bl3[back coordinate]
+
+BM([Red Middle]) --> bm1[pixel coordinate]
+bm1 --> bm3[back coordinate]
+
+BR([Red Right]) --> br1[pixel coordinate]
+br1 --> br3[back coordinate]
+
+br3 & bl3 & bm3 --> fb[position at backdrop]
+end
+
 ```
 
 ### Vision Back:
