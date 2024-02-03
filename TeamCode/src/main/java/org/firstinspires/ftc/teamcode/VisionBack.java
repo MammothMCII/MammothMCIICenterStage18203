@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -122,9 +123,9 @@ public class VisionBack extends LinearOpMode {
         //roadrunner initialization
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
 
-        Pose2d startPoseRed = new Pose2d(15, -60, Math.toRadians(90));
+        Pose2d startPoseRed = new Pose2d(9, -60, Math.toRadians(90));
 
-        Pose2d startPoseBlue = new Pose2d(8, 60, Math.toRadians(-90));
+        Pose2d startPoseBlue = new Pose2d(17, 60, Math.toRadians(-90));
 
 
 
@@ -134,59 +135,63 @@ public class VisionBack extends LinearOpMode {
 
         // red L
         Trajectory RedL_To_Tape = drive.trajectoryBuilder(startPoseRed)
-                .lineToConstantHeading(new Vector2d(1, -34))
+                .splineToConstantHeading(new Vector2d(1, -34), Math.toRadians(180))
                 .build();
         Trajectory RedL_ReturnL = drive.trajectoryBuilder(RedL_To_Tape.end())
-                .lineToConstantHeading(new Vector2d(53, -34))
+                .splineToConstantHeading(new Vector2d(1, -35), Math.toRadians(-90))
+                .splineToConstantHeading(new Vector2d(20, -35), Math.toRadians(0))
+                .splineToSplineHeading(new Pose2d(58, -13, Math.toRadians(0)), Math.toRadians(0))
                 .build();
 
         // red M
         Trajectory RedM_To_Tape = drive.trajectoryBuilder(startPoseRed)
                 .lineToConstantHeading(new Vector2d(12, -29))
                 .build();
-        Trajectory RedM_Reverse = drive.trajectoryBuilder(RedM_To_Tape.end())
-                .lineToConstantHeading(new Vector2d(12, -34))
-                .build();
-        Trajectory RedM_Return = drive.trajectoryBuilder(RedM_Reverse.end())
-                .lineToConstantHeading(new Vector2d(53, -34))
+
+        Trajectory RedM_Return = drive.trajectoryBuilder(RedM_To_Tape.end())
+                .lineToConstantHeading(new Vector2d(30, -40))
+                .splineToSplineHeading(new Pose2d(58, -14, Math.toRadians(0)), Math.toRadians(0))
                 .build();
 
         // red R
         Trajectory RedR_To_Tape = drive.trajectoryBuilder(startPoseRed)
-                .splineToConstantHeading(new Vector2d(23, -34), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(25, -34), Math.toRadians(0))
                 .build();
 
-        Trajectory RedR_Return = drive.trajectoryBuilder(RedR_To_Tape.end())
-                .lineToConstantHeading(new Vector2d(53, -34))
+        Trajectory RedR_ReturnNew = drive.trajectoryBuilder(RedR_To_Tape.end())
+                .lineToConstantHeading(new Vector2d(30, -45))
+                .splineToSplineHeading(new Pose2d(58, -14, Math.toRadians(0)), Math.toRadians(0))
                 .build();
 
 
         // Blue R
         Trajectory BlueR_To_Tape = drive.trajectoryBuilder(startPoseBlue)
-                .lineToConstantHeading(new Vector2d(1, 33))
+                .splineToConstantHeading(new Vector2d(1, 33), Math.toRadians(180))
                 .build();
         Trajectory BlueR_Return = drive.trajectoryBuilder(BlueR_To_Tape.end())
-                .lineToConstantHeading(new Vector2d(53, 33))
+                .splineToConstantHeading(new Vector2d(1, 34), Math.toRadians(90))
+                .splineToConstantHeading(new Vector2d(20, 34), Math.toRadians(0))
+                .splineToSplineHeading(new Pose2d(58, 13, Math.toRadians(0)), Math.toRadians(0))
                 .build();
 
         // Blue M
         Trajectory BlueM_To_Tape = drive.trajectoryBuilder(startPoseBlue)
-                .lineToConstantHeading(new Vector2d(12, 29))
+                .lineToConstantHeading(new Vector2d(12, 28))
                 .build();
-        Trajectory BlueM_Reverse = drive.trajectoryBuilder(BlueM_To_Tape.end())
-                .lineToConstantHeading(new Vector2d(12, 33))
-                .build();
-        Trajectory BlueM_Return = drive.trajectoryBuilder(BlueM_Reverse.end())
-                .lineToConstantHeading(new Vector2d(53, 33))
+
+        Trajectory BlueM_Return = drive.trajectoryBuilder(BlueM_To_Tape.end())
+                .lineToConstantHeading(new Vector2d(30, 40))
+                .splineToSplineHeading(new Pose2d(58, 13, Math.toRadians(0)), Math.toRadians(0))
                 .build();
 
         // Blue L
         Trajectory BlueL_To_Tape = drive.trajectoryBuilder(startPoseBlue)
-                .splineToConstantHeading(new Vector2d(23, 33), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(25, 33), Math.toRadians(0))
                 .build();
 
         Trajectory BlueL_Return = drive.trajectoryBuilder(BlueL_To_Tape.end())
-                .lineToConstantHeading(new Vector2d(53, 33))
+                .lineToConstantHeading(new Vector2d(30, 45))
+                .splineToSplineHeading(new Pose2d(58, 13, Math.toRadians(0)), Math.toRadians(0))
                 .build();
 
         bottom_grip.setPosition(0);
@@ -235,7 +240,6 @@ public class VisionBack extends LinearOpMode {
                         //Blue mid
                         drive.followTrajectory(BlueM_To_Tape);
                         dropPixel();
-                        drive.followTrajectory(BlueM_Reverse);
                         drive.followTrajectory(BlueM_Return);
                         top_grip.setPosition(0);
                         sleep(1233456);
@@ -253,14 +257,13 @@ public class VisionBack extends LinearOpMode {
                     if (valRightR == max) {
                         drive.followTrajectory(RedR_To_Tape);
                         dropPixel();
-                        drive.followTrajectory(RedR_Return);
+                        drive.followTrajectory(RedR_ReturnNew);
                         top_grip.setPosition(0);
                         sleep(1233456);
                     }
                     if (valMidR == max) {
                         drive.followTrajectory(RedM_To_Tape);
                         dropPixel();
-                        drive.followTrajectory(RedM_Reverse);
                         drive.followTrajectory(RedM_Return);
                         top_grip.setPosition(0);
                         sleep(1233456);
