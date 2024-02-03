@@ -54,9 +54,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-@Autonomous(name= "VisionFront", group="autonomous")
-//@Disabled//comment out this line before using
-public class VisionTest extends LinearOpMode {
+@Autonomous(name= "VisionBack", group="autonomous")
+
+public class VisionBack extends LinearOpMode {
     private ElapsedTime runtime = new ElapsedTime();
 
     //0 means skystone, 1 means yellow stone
@@ -122,9 +122,9 @@ public class VisionTest extends LinearOpMode {
         //roadrunner initialization
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
 
-        Pose2d startPoseRed = new Pose2d(-39, -60, Math.toRadians(90));
+        Pose2d startPoseRed = new Pose2d(15, -60, Math.toRadians(90));
 
-        Pose2d startPoseBlue = new Pose2d(-30, 60, Math.toRadians(-90));
+        Pose2d startPoseBlue = new Pose2d(8, 60, Math.toRadians(-90));
 
 
 
@@ -134,7 +134,7 @@ public class VisionTest extends LinearOpMode {
 
         // red L
         Trajectory RedL_To_Tape = drive.trajectoryBuilder(startPoseRed)
-                .lineToConstantHeading(new Vector2d(-48, -34))
+                .lineToConstantHeading(new Vector2d(1, -34))
                 .build();
         Trajectory RedL_ReturnL = drive.trajectoryBuilder(RedL_To_Tape.end())
                 .lineToConstantHeading(new Vector2d(53, -34))
@@ -142,10 +142,10 @@ public class VisionTest extends LinearOpMode {
 
         // red M
         Trajectory RedM_To_Tape = drive.trajectoryBuilder(startPoseRed)
-                .lineToConstantHeading(new Vector2d(-39, -29))
+                .lineToConstantHeading(new Vector2d(12, -29))
                 .build();
         Trajectory RedM_Reverse = drive.trajectoryBuilder(RedM_To_Tape.end())
-                .lineToConstantHeading(new Vector2d(-39, -34))
+                .lineToConstantHeading(new Vector2d(12, -34))
                 .build();
         Trajectory RedM_Return = drive.trajectoryBuilder(RedM_Reverse.end())
                 .lineToConstantHeading(new Vector2d(53, -34))
@@ -153,7 +153,7 @@ public class VisionTest extends LinearOpMode {
 
         // red R
         Trajectory RedR_To_Tape = drive.trajectoryBuilder(startPoseRed)
-                .splineToConstantHeading(new Vector2d(-24, -34), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(23, -34), Math.toRadians(0))
                 .build();
 
         Trajectory RedR_Return = drive.trajectoryBuilder(RedR_To_Tape.end())
@@ -163,7 +163,7 @@ public class VisionTest extends LinearOpMode {
 
         // Blue R
         Trajectory BlueR_To_Tape = drive.trajectoryBuilder(startPoseBlue)
-                .lineToConstantHeading(new Vector2d(-47, 33))
+                .lineToConstantHeading(new Vector2d(1, 33))
                 .build();
         Trajectory BlueR_Return = drive.trajectoryBuilder(BlueR_To_Tape.end())
                 .lineToConstantHeading(new Vector2d(53, 33))
@@ -171,10 +171,10 @@ public class VisionTest extends LinearOpMode {
 
         // Blue M
         Trajectory BlueM_To_Tape = drive.trajectoryBuilder(startPoseBlue)
-                .lineToConstantHeading(new Vector2d(-39, 29))
+                .lineToConstantHeading(new Vector2d(12, 29))
                 .build();
         Trajectory BlueM_Reverse = drive.trajectoryBuilder(BlueM_To_Tape.end())
-                .lineToConstantHeading(new Vector2d(-39, 33))
+                .lineToConstantHeading(new Vector2d(12, 33))
                 .build();
         Trajectory BlueM_Return = drive.trajectoryBuilder(BlueM_Reverse.end())
                 .lineToConstantHeading(new Vector2d(53, 33))
@@ -182,7 +182,7 @@ public class VisionTest extends LinearOpMode {
 
         // Blue L
         Trajectory BlueL_To_Tape = drive.trajectoryBuilder(startPoseBlue)
-                .splineToConstantHeading(new Vector2d(-22, 33), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(23, 33), Math.toRadians(0))
                 .build();
 
         Trajectory BlueL_Return = drive.trajectoryBuilder(BlueL_To_Tape.end())
@@ -432,7 +432,7 @@ public class VisionTest extends LinearOpMode {
         sleep(100);
         arm_slide.setPower(0);
         arm_tilt.setPower(0);
-        hand_tilt.setPosition(0.2);
+        //hand_tilt.setPosition(0.2);
 
     }
 }
