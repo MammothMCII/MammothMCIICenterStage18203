@@ -134,30 +134,37 @@ public class VisionTest extends LinearOpMode {
 
         // red L
         Trajectory RedL_To_Tape = drive.trajectoryBuilder(startPoseRed)
-                .lineToConstantHeading(new Vector2d(-48, -34))
+                .lineToConstantHeading(new Vector2d(-48, -38))
                 .build();
         Trajectory RedL_ReturnL = drive.trajectoryBuilder(RedL_To_Tape.end())
-                .lineToConstantHeading(new Vector2d(53, -34))
+                .lineToConstantHeading(new Vector2d(-48, -40))
+                .splineToConstantHeading(new Vector2d(-60, -40), Math.toRadians(90))
+                .splineToConstantHeading(new Vector2d(-60, -24), Math.toRadians(90))
+                .splineToSplineHeading(new Pose2d(-50, -9, Math.toRadians(0)), Math.toRadians(0))
+                .lineToConstantHeading(new Vector2d(53, -9))
                 .build();
 
         // red M
         Trajectory RedM_To_Tape = drive.trajectoryBuilder(startPoseRed)
                 .lineToConstantHeading(new Vector2d(-39, -29))
                 .build();
-        Trajectory RedM_Reverse = drive.trajectoryBuilder(RedM_To_Tape.end())
-                .lineToConstantHeading(new Vector2d(-39, -34))
-                .build();
-        Trajectory RedM_Return = drive.trajectoryBuilder(RedM_Reverse.end())
-                .lineToConstantHeading(new Vector2d(53, -34))
+
+        Trajectory RedM_Return = drive.trajectoryBuilder(RedM_To_Tape.end())
+                .splineToConstantHeading(new Vector2d(-39, -33), Math.toRadians(0))
+                .lineToConstantHeading(new Vector2d(53, -33))
                 .build();
 
         // red R
         Trajectory RedR_To_Tape = drive.trajectoryBuilder(startPoseRed)
-                .splineToConstantHeading(new Vector2d(-24, -34), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(-24, -32), Math.toRadians(0))
                 .build();
 
         Trajectory RedR_Return = drive.trajectoryBuilder(RedR_To_Tape.end())
-                .lineToConstantHeading(new Vector2d(53, -34))
+                .lineToConstantHeading(new Vector2d(-26, -33))
+                .splineToConstantHeading(new Vector2d(-60, -33), Math.toRadians(90))
+                .splineToConstantHeading(new Vector2d(-60, -24), Math.toRadians(90))
+                .splineToSplineHeading(new Pose2d(-50, -9, Math.toRadians(0)), Math.toRadians(0))
+                .lineToConstantHeading(new Vector2d(53, -9))
                 .build();
 
 
@@ -260,7 +267,7 @@ public class VisionTest extends LinearOpMode {
                     if (valMidR == max) {
                         drive.followTrajectory(RedM_To_Tape);
                         dropPixel();
-                        drive.followTrajectory(RedM_Reverse);
+                        hand_tilt.setPosition(0.2);
                         drive.followTrajectory(RedM_Return);
                         top_grip.setPosition(0);
                         sleep(1233456);
@@ -432,7 +439,7 @@ public class VisionTest extends LinearOpMode {
         sleep(100);
         arm_slide.setPower(0);
         arm_tilt.setPower(0);
-        hand_tilt.setPosition(0.2);
+        //hand_tilt.setPosition(0.2);
 
     }
 }
