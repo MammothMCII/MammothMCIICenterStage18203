@@ -16,8 +16,16 @@ it follows the basic line
 - then depending on the identified side, parks at the backdrop
 #### Full Diagram:
 ```mermaid
-graph TD
-  a-->b
+graph LR
+Initialize --> a[Close Grabber]
+a --> b[Program Start]
+b --> c{check detection}
+c -- Red Left --> d[cooordinate]
+c -- Red Middle --> e[cooordinate]
+c -- Red Right --> f[cooordinate]
+c -- Blue Left --> g[cooordinate]
+c -- Blue Right --> h[cooordinate]
+c -- Blue Middle --> i[cooordinate]
 ```
 
 ### Vision Back:
