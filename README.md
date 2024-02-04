@@ -67,3 +67,45 @@ it follows the basic line
 - the spot with either the most red or most blue is selected as the location for the team prop
 - travels to the line and drops pixel
 - then depending on the identified side, parks at the backdrop
+#### Full Diagram:
+```mermaid
+graph LR
+Initialize([Initialize Robot]) --> a[Close Grabber]
+a --> b[Program Start]
+b --> c{check detection}
+
+c --> d[set position estimate to red side]
+c --> e[set position estimate to blue side]
+
+subgraph Red side
+d -- Left --> RL
+d -- Middle --> RM
+d -- Right -->RR
+
+RL[pixel coordinate] --> rl2[back coordinate]
+
+RM[pixel coordinate] --> rm2[back coordinate]
+
+RR[pixel coordinate] --> rr2[back coordinate]
+
+rr2 & rl2 & rm2 --> f[position at backdrop]
+end
+
+
+
+subgraph Blue side
+
+e -- Left --> BL
+e -- Middle --> BM
+e -- Right --> BR
+
+BL[pixel coordinate] --> bl3[back coordinate]
+
+BM[pixel coordinate] --> bm3[back coordinate]
+
+BR[pixel coordinate] --> br3[back coordinate]
+
+br3 & bl3 & bm3 --> fb[position at backdrop]
+end
+
+```
