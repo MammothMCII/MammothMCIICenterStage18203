@@ -16,45 +16,44 @@ it follows the basic line
 - then depending on the identified side, parks at the backdrop
 #### Full Diagram:
 ```mermaid
-graph TD
+graph LR
 Initialize([Initialize Robot]) --> a[Close Grabber]
 a --> b[Program Start]
 b --> c{check detection}
-c -- Red --> d[set position estimate to red side]
-d -- Left --> rl[[run to coodinate]]
-d -- Middle --> rm[[run to coodinate]]
-d -- Right --> rr[[run to coodinate]]
 
-c -- Blue --> e[set position estimate to blue side]
-e -- Left --> bl[[run to coodinate]]
-e -- Middle --> bm[[run to coodinate]]
-e -- Right --> br[[run to coodinate]]
+c --> d[set position estimate to red side]
+c --> e[set position estimate to blue side]
 
 subgraph Red side
-RL([Red Left]) --> rl1[pixel coordinate]
-rl1 --> rl2[back coordinate]
+d -- Left --> RL
+d -- Middle --> RM
+d -- Right -->RR
+
+RL[pixel coordinate] --> rl2[back coordinate]
 rl2 --> rl3[fancy spline]
 
-RM([Red Middle]) --> rm1[pixel coordinate]
-rm1 --> rm2[back coordinate]
+RM[pixel coordinate] --> rm2[back coordinate]
 rm2 --> rm3[fancy spline]
 
-RR([Red Right]) --> rr1[pixel coordinate]
-rr1 --> rr2[back coordinate]
+RR[pixel coordinate] --> rr2[back coordinate]
 rr2 --> rr3[fancy spline]
 
 rr3 & rl3 --> f[position at backdrop]
 end
 
+
+
 subgraph Blue side
-BL([Blue Left]) --> bl1[pixel coordinate]
-bl1 --> bl3[back coordinate]
 
-BM([Red Middle]) --> bm1[pixel coordinate]
-bm1 --> bm3[back coordinate]
+e -- Left --> BL
+e -- Middle --> BM
+e -- Right --> BR
 
-BR([Red Right]) --> br1[pixel coordinate]
-br1 --> br3[back coordinate]
+BL[pixel coordinate] --> bl3[back coordinate]
+
+BM[pixel coordinate] --> bm3[back coordinate]
+
+BR[pixel coordinate] --> br3[back coordinate]
 
 br3 & bl3 & bm3 --> fb[position at backdrop]
 end
