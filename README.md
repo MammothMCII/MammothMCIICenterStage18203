@@ -5,7 +5,9 @@
 
 
 ## Basic operation
-### Teleop main is the only teleop used in competition grips servos on initialization
+### Teleop main is the only teleop used in competition:
+the main features are:
+- placeholder text, I will add a full control guide and scheme for the robot
 
 ### Vision Front:
 this uses the white tape on the robot to line up with the inner edge of the left side of the tile on the side away from the backdrop. 
