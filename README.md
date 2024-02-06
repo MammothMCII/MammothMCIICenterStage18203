@@ -5,9 +5,28 @@
 
 
 ## Basic operation
-### Teleop main is the only teleop used in competition:
-the main features are:
-- placeholder text, I will add a full control guide and scheme for the robot
+### Teleop main:
+this is the only teleop used in competition
+the controls are:
+- Left Analog y-axis: robot rotation
+- Right Analog: robot movement, uses strafe with mecanum wheels
+- DPad Up: winch up
+- DPad Down: winch down
+- DPad Left: release winch*
+- DPad Right: launch plane*
+- L1(Left Bumper): Top Gripper*
+- R1(Right Bumper): Bottom Gripper*
+- L2(Left Trigger): Analog speed reduction
+- R2(Right Trigger): Analog speed increase
+- Triangle: Flip hand*
+- Square: "jiggle"
+- Cross: Arm down
+- Circle: Arm up
+
+"*" indicates toggle
+![image](https://raw.githubusercontent.com/MammothMCII/MammothMCIICenterStage18203/master/PS4-Controller-diagram-light-mode-freindly.png)
+
+The "jiggle" is where the robot does a little shaking to dislodge any pixels that may be stuck in the gripper when placed on the backdrop. While release winch and launch plane are both on toggles, this is merely for resetting purposes as both of these can only be activated once per game without being manually reset by hand.
 
 ### Vision Front:
 this uses the white tape on the robot to line up with the inner edge of the left side of the tile on the side away from the backdrop. 
@@ -40,7 +59,7 @@ rm2 --> rm3[fancy spline]
 RR[pixel coordinate] --> rr2[back coordinate]
 rr2 --> rr3[fancy spline]
 
-rr3 & rl3 --> f[position at backdrop]
+rr3 & rl3 --> f[Tile at backdrop closest to center]
 end
 
 
