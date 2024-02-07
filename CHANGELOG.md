@@ -10,6 +10,7 @@ notes
 ### Added
  
 ### Changed
+- arm movement now on left stick y
  
 ### Fixed
 
