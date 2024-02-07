@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 notes
 
 ### Added
+- rotational snap to the backboard
  
 ### Changed
 - arm movement now on left stick y
