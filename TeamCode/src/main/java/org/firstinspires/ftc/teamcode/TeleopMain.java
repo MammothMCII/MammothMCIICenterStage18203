@@ -215,7 +215,7 @@ public class TeleopMain extends LinearOpMode {
                 else if (!gamepad1.dpad_right) planeToggle = false;
 
 
-                if (gamepad1.a){
+                while (gamepad1.a){
                     lockToBackdrop();
                 }
 
@@ -345,6 +345,7 @@ public class TeleopMain extends LinearOpMode {
 
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
         double average_offset = 0;
+        double average_distance = 0;
         // Step through the list of detections and display info for each one.
         for (AprilTagDetection detection : currentDetections) {
             if (detection.metadata != null) {
@@ -352,14 +353,25 @@ public class TeleopMain extends LinearOpMode {
                 //telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
                 //telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
                 average_offset += detection.ftcPose.yaw;
+                average_distance += detection.ftcPose.range;
             }
         }   // end for() loop
         average_offset = average_offset/currentDetections.size();
+        average_distance = average_distance/currentDetections.size();
 
-        bottomleftmotor.setPower(-average_offset/20);
-        topleftmotor.setPower(-average_offset/20);
-        bottomrightmotor.setPower(average_offset/20);
-        toprightmotor.setPower(average_offset/20);
+        double motor_power = 0;
+        double forward_power = 0;
+
+        motor_power = average_offset/20;
+
+        if (average_distance > 10){
+            forward_power = average_distance/20;
+        }
+
+        bottomleftmotor.setPower(-motor_power + forward_power);
+        topleftmotor.setPower(-motor_power + forward_power);
+        bottomrightmotor.setPower(motor_power + forward_power);
+        toprightmotor.setPower(motor_power + forward_power);
 
 
 

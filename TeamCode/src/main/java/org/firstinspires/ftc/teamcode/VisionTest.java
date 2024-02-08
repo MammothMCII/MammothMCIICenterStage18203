@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import android.util.Size;
+
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -101,13 +103,15 @@ public class VisionTest extends LinearOpMode {
     private Servo bottom_grip;
     private DcMotor arm_slide;
 
-    private static final boolean USE_WEBCAM = true;
-    private AprilTagProcessor aprilTag;
-    private VisionPortal visionPortal;
+    //private static final boolean USE_WEBCAM = true;
+    //private AprilTagProcessor aprilTag;
+    //private VisionPortal visionPortal;
 
 
     @Override
     public void runOpMode() throws InterruptedException {
+
+
 
         top_grip = hardwareMap.get(Servo.class, "top_grip");
         bottom_grip = hardwareMap.get(Servo.class, "bottom_grip");
@@ -123,6 +127,7 @@ public class VisionTest extends LinearOpMode {
         phoneCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
 
         phoneCam.openCameraDevice();//open camera
+        sleep(10);
         phoneCam.setPipeline(new StageSwitchingPipeline());//different stages
         phoneCam.startStreaming(rows, cols, OpenCvCameraRotation.SIDEWAYS_LEFT);//display on RC
         //width, height
@@ -152,7 +157,17 @@ public class VisionTest extends LinearOpMode {
                 .splineToConstantHeading(new Vector2d(-60, -40), Math.toRadians(90))
                 .splineToConstantHeading(new Vector2d(-60, -24), Math.toRadians(90))
                 .splineToSplineHeading(new Pose2d(-50, -9, Math.toRadians(0)), Math.toRadians(0))
-                .lineToConstantHeading(new Vector2d(53, -9))
+                .lineToConstantHeading(new Vector2d(30, -9))
+                .splineToConstantHeading(new Vector2d(40, -20), 0)
+                .build();
+
+        Trajectory Place_On_board_RedL = drive.trajectoryBuilder(RedL_ReturnL.end())
+                .lineToConstantHeading(new Vector2d(53, -25))
+                .build();
+
+        Trajectory Place_returnL = drive.trajectoryBuilder((Place_On_board_RedL.end()))
+                .splineToConstantHeading(new Vector2d(45, -10), Math.toRadians(180))
+                .splineToConstantHeading(new Vector2d(53, -7), 0)
                 .build();
 
         // red M
@@ -162,7 +177,7 @@ public class VisionTest extends LinearOpMode {
 
         Trajectory RedM_Return = drive.trajectoryBuilder(RedM_To_Tape.end())
                 .splineToConstantHeading(new Vector2d(-39, -33), Math.toRadians(0))
-                .lineToConstantHeading(new Vector2d(53, -33))
+                .lineToConstantHeading(new Vector2d(55, -33))
                 .build();
 
         // red R
@@ -265,7 +280,13 @@ public class VisionTest extends LinearOpMode {
                         drive.followTrajectory(RedL_To_Tape);
                         dropPixel();
                         drive.followTrajectory(RedL_ReturnL);
+                        arm_slide.setPower(1);
+                        sleep(400);
+                        arm_slide.setPower(0);
+                        drive.followTrajectory(Place_On_board_RedL);
                         top_grip.setPosition(0);
+                        sleep(50);
+                        drive.followTrajectory(Place_returnL);
                         sleep(1233456); // without this sleep the robot will follow an extra trajectory, dont know why
                     }
                     if (valRightR == max) {
@@ -452,10 +473,10 @@ public class VisionTest extends LinearOpMode {
         sleep(100);
         arm_slide.setPower(0);
         arm_tilt.setPower(0);
-        //hand_tilt.setPosition(0.2);
+        hand_tilt.setPosition(0.2);
 
     }
-
+/**
     private void initAprilTag() {
 
         // Create the AprilTag processor.
@@ -472,7 +493,7 @@ public class VisionTest extends LinearOpMode {
                 // == CAMERA CALIBRATION ==
                 // If you do not manually specify calibration parameters, the SDK will attempt
                 // to load a predefined calibration for your camera.
-                //.setLensIntrinsics(578.272, 578.272, 402.145, 221.506)
+                .setLensIntrinsics(1430 , 1430 , 480, 620)
                 // ... these parameters are fx, fy, cx, cy.
 
                 .build();
@@ -497,7 +518,7 @@ public class VisionTest extends LinearOpMode {
         }
 
         // Choose a camera resolution. Not all cameras support all resolutions.
-        //builder.setCameraResolution(new Size(640, 480));
+        builder.setCameraResolution(new Size(1280, 720));
 
         // Enable the RC preview (LiveView).  Set "false" to omit camera monitoring.
         //builder.enableLiveView(true);
@@ -522,10 +543,8 @@ public class VisionTest extends LinearOpMode {
     }   // end method initAprilTag()
 
 
-    /**
-     * Add telemetry about AprilTag detections.
-     */
-    private void telemetryAprilTag() {
+
+    private void CheckAprilTag() {
 
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
         telemetry.addData("# AprilTags Detected", currentDetections.size());
@@ -548,5 +567,5 @@ public class VisionTest extends LinearOpMode {
         telemetry.addLine("PRY = Pitch, Roll & Yaw (XYZ Rotation)");
         telemetry.addLine("RBE = Range, Bearing & Elevation");
 
-    }   // end method telemetryAprilTag()
+    }   // end method telemetryAprilTag()**/
 }
