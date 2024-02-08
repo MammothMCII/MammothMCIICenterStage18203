@@ -3,17 +3,18 @@
 All notable changes to this project will be documented in this file.
  
  
-## [Unreleased] - yyyy-mm-dd
+## [2024-02-07] 
  
-notes
+Worked on april tags, mostly incomplete, pixel placing is still based on roadrunner pose estimate which is still very accurate.
 
 ### Added
-- rotational snap to the backboard
+- added rotational snap to the backboard
+- added yellow pixel on backboard for Front-Red-Left
  
 ### Changed
-- arm movement now on left stick y
- 
-### Fixed
+- arm movement is now on left stick y
+- improved PID values for Roadrunner
+- improved Track Width values for Roadrunner
 
 
 ## [2024-02-02]
