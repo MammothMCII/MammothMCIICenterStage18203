@@ -223,7 +223,7 @@ public class VisionTest extends LinearOpMode {
                 .build();
 
         bottom_grip.setPosition(0);
-        top_grip.setPosition(1);
+        top_grip.setPosition(0.8);
 
         telemetry.addData("Robot has initialized", ")");
         telemetry.update();

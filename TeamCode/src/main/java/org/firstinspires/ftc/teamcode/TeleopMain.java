@@ -96,7 +96,7 @@ public class TeleopMain extends LinearOpMode {
         bottomrightmotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         bottom_grip.setPosition(0);
-        top_grip.setPosition(1);
+        top_grip.setPosition(0.85);
 
 
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
@@ -164,7 +164,7 @@ public class TeleopMain extends LinearOpMode {
 
                 if (gamepad1.left_bumper && !topToggle) {
                     if (topOn == false) {top_grip.setPosition(0); topOn = true;}
-                    else {top_grip.setPosition(1);
+                    else {top_grip.setPosition(0.8);
 
                         topOn = false;
                     }
@@ -174,7 +174,7 @@ public class TeleopMain extends LinearOpMode {
 
 
                 if (gamepad1.right_bumper && !bottomToggle) {
-                    if (bottomOn == false) {bottom_grip.setPosition(1); bottomOn = true;}
+                    if (bottomOn == false) {bottom_grip.setPosition(0.80); bottomOn = true;}
                     else {bottom_grip.setPosition(0);
 
                         bottomOn = false;
