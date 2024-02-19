@@ -72,7 +72,7 @@ public class TeleopMain extends LinearOpMode {
         boolean tiltToggle = false;
         boolean tiltOn = false;
 
-        initAprilTag();
+        //initAprilTag();
 
         topleftmotor = hardwareMap.get(DcMotor.class, "top left motor");
         bottomleftmotor = hardwareMap.get(DcMotor.class, "bottom left motor");
@@ -104,7 +104,7 @@ public class TeleopMain extends LinearOpMode {
         waitForStart();
         if (opModeIsActive()) {
             while (opModeIsActive()) {
-                telemetryAprilTag();
+                //telemetryAprilTag();
 
                 telemetry.update();
 
@@ -214,16 +214,20 @@ public class TeleopMain extends LinearOpMode {
                 }
                 else if (!gamepad1.dpad_right) planeToggle = false;
 
-
+                /**
                 while (gamepad1.a){
                     lockToBackdrop();
                 }
+                 **/
 
 
                 telemetry.update();
             }
+
         }
+        //visionPortal.close();
     }
+
 
     public void wiggle() {
         int frequency = 15;

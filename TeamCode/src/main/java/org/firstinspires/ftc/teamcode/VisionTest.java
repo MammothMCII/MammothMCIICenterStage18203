@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -14,7 +15,8 @@ import org.apache.commons.math3.stat.descriptive.rank.Max;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+//import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+//import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -65,6 +67,7 @@ import java.util.List;
 //@Disabled//comment out this line before using
 public class VisionTest extends LinearOpMode {
     private ElapsedTime runtime = new ElapsedTime();
+    private ElapsedTime wait_stop = new ElapsedTime();
 
     //0 means skystone, 1 means yellow stone
     //-1 for debug, but we can keep it like this because if it works, it should change to either 0 or 255
@@ -77,6 +80,11 @@ public class VisionTest extends LinearOpMode {
     private static int valRightR = -1;
 
     private static int max = 0;
+
+    private static int wait_time = 0;
+
+    private static int end_pos = 0; // left,   1 = right,   2 = middle
+
 
 
     private static float rectHeight = .6f/8f;
@@ -102,17 +110,29 @@ public class VisionTest extends LinearOpMode {
     private Servo hand_tilt;
     private Servo bottom_grip;
     private DcMotor arm_slide;
+    private DcMotor topleftmotor;
+    private DcMotor bottomleftmotor;
+    private DcMotor toprightmotor;
+    private DcMotor bottomrightmotor;
 
-    //private static final boolean USE_WEBCAM = true;
-    //private AprilTagProcessor aprilTag;
-    //private VisionPortal visionPortal;
+
+    private static final boolean USE_WEBCAM = true;
+    private AprilTagProcessor aprilTag;
+    private VisionPortal visionPortal;
 
 
     @Override
     public void runOpMode() throws InterruptedException {
 
+        topleftmotor = hardwareMap.get(DcMotor.class, "top left motor");
+        bottomleftmotor = hardwareMap.get(DcMotor.class, "bottom left motor");
+        toprightmotor = hardwareMap.get(DcMotor.class, "top right motor");
+        bottomrightmotor = hardwareMap.get(DcMotor.class, "bottom right motor");
 
-
+        topleftmotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        bottomleftmotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        toprightmotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        bottomrightmotor.setDirection(DcMotorSimple.Direction.REVERSE);
         top_grip = hardwareMap.get(Servo.class, "top_grip");
         bottom_grip = hardwareMap.get(Servo.class, "bottom_grip");
         hand_tilt = hardwareMap.get(Servo.class, "hand_tilt");
@@ -123,11 +143,12 @@ public class VisionTest extends LinearOpMode {
 
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
 
-        //P.S. if you're using the latest version of easyopencv, you might need to change the next line to the following:
-        phoneCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
 
+        phoneCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
+        //initAprilTag();
+        //visionPortal.close();
         phoneCam.openCameraDevice();//open camera
-        sleep(10);
+
         phoneCam.setPipeline(new StageSwitchingPipeline());//different stages
         phoneCam.startStreaming(rows, cols, OpenCvCameraRotation.SIDEWAYS_LEFT);//display on RC
         //width, height
@@ -148,52 +169,63 @@ public class VisionTest extends LinearOpMode {
 
 
 
-        // red L
+        // red to tape
         Trajectory RedL_To_Tape = drive.trajectoryBuilder(startPoseRed)
                 .lineToConstantHeading(new Vector2d(-48, -38))
-                .build();
-        Trajectory RedL_ReturnL = drive.trajectoryBuilder(RedL_To_Tape.end())
-                .lineToConstantHeading(new Vector2d(-48, -40))
-                .splineToConstantHeading(new Vector2d(-60, -40), Math.toRadians(90))
-                .splineToConstantHeading(new Vector2d(-60, -24), Math.toRadians(90))
-                .splineToSplineHeading(new Pose2d(-50, -9, Math.toRadians(0)), Math.toRadians(0))
-                .lineToConstantHeading(new Vector2d(30, -9))
-                .splineToConstantHeading(new Vector2d(40, -20), 0)
+                //.splineToConstantHeading(new Vector2d(-45, -45), Math.toRadians(0))
                 .build();
 
-        Trajectory Place_On_board_RedL = drive.trajectoryBuilder(RedL_ReturnL.end())
-                .lineToConstantHeading(new Vector2d(53, -25))
-                .build();
-
-        Trajectory Place_returnL = drive.trajectoryBuilder((Place_On_board_RedL.end()))
-                .splineToConstantHeading(new Vector2d(45, -10), Math.toRadians(180))
-                .splineToConstantHeading(new Vector2d(53, -7), 0)
-                .build();
-
-        // red M
         Trajectory RedM_To_Tape = drive.trajectoryBuilder(startPoseRed)
-                .lineToConstantHeading(new Vector2d(-39, -29))
+                .lineToConstantHeading(new Vector2d(-43, -28))
                 .build();
 
-        Trajectory RedM_Return = drive.trajectoryBuilder(RedM_To_Tape.end())
-                .splineToConstantHeading(new Vector2d(-39, -33), Math.toRadians(0))
-                .lineToConstantHeading(new Vector2d(55, -33))
-                .build();
-
-        // red R
         Trajectory RedR_To_Tape = drive.trajectoryBuilder(startPoseRed)
-                .splineToConstantHeading(new Vector2d(-24, -32), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(-23, -32), Math.toRadians(0))
                 .build();
 
-        Trajectory RedR_Return = drive.trajectoryBuilder(RedR_To_Tape.end())
+
+        // red to wait pos
+        Trajectory Red_to_wait = drive.trajectoryBuilder(RedR_To_Tape.end())
                 .lineToConstantHeading(new Vector2d(-26, -33))
                 .splineToConstantHeading(new Vector2d(-60, -33), Math.toRadians(90))
                 .splineToConstantHeading(new Vector2d(-60, -24), Math.toRadians(90))
                 .splineToSplineHeading(new Pose2d(-50, -9, Math.toRadians(0)), Math.toRadians(0))
-                .lineToConstantHeading(new Vector2d(53, -9))
+                .build();
+
+        //red return
+        Trajectory Red_Return = drive.trajectoryBuilder(Red_to_wait.end())
+                .lineToConstantHeading(new Vector2d(30, -9))
+                .splineToConstantHeading(new Vector2d(40, -20), 0)
+                .build();
+
+        //red board
+        Trajectory Place_On_board_RedL = drive.trajectoryBuilder(Red_Return.end())
+                .lineToConstantHeading(new Vector2d(55, -25))
+                .build();
+
+        Trajectory Place_On_board_RedM = drive.trajectoryBuilder(Red_Return.end())
+                .lineToConstantHeading(new Vector2d(55, -31))
+                .build();
+
+        Trajectory Place_On_board_RedR = drive.trajectoryBuilder(Red_Return.end())
+                .lineToConstantHeading(new Vector2d(55, -35))
                 .build();
 
 
+        //park
+        Trajectory Red_Place_returnL = drive.trajectoryBuilder((Place_On_board_RedM.end()))
+                .lineToConstantHeading(new Vector2d(35, -10))
+                .splineToConstantHeading(new Vector2d(53, -7), 0)
+                .build();
+
+        Trajectory Red_Place_returnR = drive.trajectoryBuilder((Place_On_board_RedM.end()))
+                .lineToConstantHeading(new Vector2d(35, -10))
+                .splineToConstantHeading(new Vector2d(53, -60), 0)
+                .build();
+
+
+
+        ///--------------------------------------------------------------------------------------------------
         // Blue R
         Trajectory BlueR_To_Tape = drive.trajectoryBuilder(startPoseBlue)
                 .lineToConstantHeading(new Vector2d(-47, 33))
@@ -225,7 +257,57 @@ public class VisionTest extends LinearOpMode {
         bottom_grip.setPosition(0);
         top_grip.setPosition(0.8);
 
+
+        // ask for wait time
+        telemetry.addLine("     ▲:3");
+        telemetry.addLine("■:no     O:5");
+        telemetry.addLine("     X:Max ");
+        telemetry.update();
+
+        while(true){
+            if (gamepad1.x){
+                wait_time = 0;
+                break;
+            }
+            if (gamepad1.y){
+                wait_time = 3;
+                break;
+            }
+            if (gamepad1.a){
+                wait_time = 20;
+                break;//this will not work correctly
+            }
+            if (gamepad1.b){
+                wait_time = 5;
+                break;
+            }
+        }
+        // ask for end position
+        telemetry.addLine("      ||:Middle");
+        telemetry.addLine("Left------Right");
+        telemetry.update();
+
+
+        while(true){
+            if (gamepad1.dpad_left){
+                end_pos = 0;
+                break;
+            }
+            if (gamepad1.dpad_up){
+                end_pos = 2;
+                break;
+            }
+            if (gamepad1.dpad_right){
+                end_pos = 1;
+                break;
+            }
+        }
+
+
+
         telemetry.addData("Robot has initialized", ")");
+        telemetry.addData("end pos 0 = left,   1 = right", end_pos);
+        telemetry.addData("time delay", wait_time);
         telemetry.update();
 
         waitForStart();
@@ -274,36 +356,61 @@ public class VisionTest extends LinearOpMode {
                         sleep(1233456);
                     }
                 }
+
+
+
+
+
                 if (valLeftR == max || valMidR == max || valRightR == max) {
                     drive.setPoseEstimate(startPoseRed);
+                    sleep(10);
                     if (valLeftR == max) {
                         drive.followTrajectory(RedL_To_Tape);
-                        dropPixel();
-                        drive.followTrajectory(RedL_ReturnL);
-                        arm_slide.setPower(1);
-                        sleep(400);
-                        arm_slide.setPower(0);
-                        drive.followTrajectory(Place_On_board_RedL);
-                        top_grip.setPosition(0);
-                        sleep(50);
-                        drive.followTrajectory(Place_returnL);
-                        sleep(1233456); // without this sleep the robot will follow an extra trajectory, dont know why
+
                     }
-                    if (valRightR == max) {
+                    else if (valRightR == max) {
                         drive.followTrajectory(RedR_To_Tape);
-                        dropPixel();
-                        drive.followTrajectory(RedR_Return);
-                        top_grip.setPosition(0);
-                        sleep(1233456);
                     }
-                    if (valMidR == max) {
+                    else if (valMidR == max) {
                         drive.followTrajectory(RedM_To_Tape);
-                        dropPixel();
-                        hand_tilt.setPosition(0.2);
-                        drive.followTrajectory(RedM_Return);
-                        top_grip.setPosition(0);
-                        sleep(1233456);
                     }
+
+                    dropPixel();
+                    drive.followTrajectory(Red_to_wait);
+                    delay_wait(wait_time);
+                    drive.followTrajectory(Red_Return);
+                    arm_slide.setPower(1);
+                    sleep(400);
+                    arm_slide.setPower(0);
+
+
+                    if (valLeftR == max) {
+                        drive.followTrajectory(Place_On_board_RedL);
+                    }
+                    else if (valRightR == max) {
+                        drive.followTrajectory(Place_On_board_RedR);
+                    }
+                    else if (valMidR == max) {
+                        drive.followTrajectory(Place_On_board_RedM);
+                    }
+
+                    top_grip.setPosition(0);
+                    wait_stop.reset();
+                    sleep(10);
+                    while (true){
+                        wiggle();
+                        if (wait_stop.seconds() > 1){
+                            break;
+                        }
+                    }
+                    sleep(50);
+                    if (end_pos == 0) {
+                        drive.followTrajectory(Red_Place_returnL);
+                    }
+                    if (end_pos == 1) {
+                        drive.followTrajectory(Red_Place_returnR);
+                    }
+                    sleep(1233456);
                 }
 
 
@@ -311,6 +418,7 @@ public class VisionTest extends LinearOpMode {
 
         }
         //visionPortal.close();
+        phoneCam.closeCameraDevice();
     }
 
 
@@ -476,38 +584,26 @@ public class VisionTest extends LinearOpMode {
         hand_tilt.setPosition(0.2);
 
     }
-/**
-    private void initAprilTag() {
+
+    public void delay_wait(int wait_dela) {
+        wait_stop.reset();
+        while(true){
+            if (wait_stop.seconds() > wait_dela){
+                break;
+            }
+        }
+    }
+
+    private void initAprilTag() { // the only reason I open april tag here is because theen I can garuntee that it will be closed
 
         // Create the AprilTag processor.
         aprilTag = new AprilTagProcessor.Builder()
 
-                // The following default settings are available to un-comment and edit as needed.
-                //.setDrawAxes(false)
-                //.setDrawCubeProjection(false)
-                //.setDrawTagOutline(true)
-                //.setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
-                //.setTagLibrary(AprilTagGameDatabase.getCenterStageTagLibrary())
-                //.setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
 
-                // == CAMERA CALIBRATION ==
-                // If you do not manually specify calibration parameters, the SDK will attempt
-                // to load a predefined calibration for your camera.
                 .setLensIntrinsics(1430 , 1430 , 480, 620)
-                // ... these parameters are fx, fy, cx, cy.
 
                 .build();
 
-        // Adjust Image Decimation to trade-off detection-range for detection-rate.
-        // eg: Some typical detection data using a Logitech C920 WebCam
-        // Decimation = 1 ..  Detect 2" Tag from 10 feet away at 10 Frames per second
-        // Decimation = 2 ..  Detect 2" Tag from 6  feet away at 22 Frames per second
-        // Decimation = 3 ..  Detect 2" Tag from 4  feet away at 30 Frames Per Second (default)
-        // Decimation = 3 ..  Detect 5" Tag from 10 feet away at 30 Frames Per Second (default)
-        // Note: Decimation can be changed on-the-fly to adapt during a match.
-        //aprilTag.setDecimation(3);
-
-        // Create the vision portal by using a builder.
         VisionPortal.Builder builder = new VisionPortal.Builder();
 
         // Set the camera (webcam vs. built-in RC phone camera).
@@ -520,16 +616,6 @@ public class VisionTest extends LinearOpMode {
         // Choose a camera resolution. Not all cameras support all resolutions.
         builder.setCameraResolution(new Size(1280, 720));
 
-        // Enable the RC preview (LiveView).  Set "false" to omit camera monitoring.
-        //builder.enableLiveView(true);
-
-        // Set the stream format; MJPEG uses less bandwidth than default YUY2.
-        //builder.setStreamFormat(VisionPortal.StreamFormat.YUY2);
-
-        // Choose whether or not LiveView stops if no processors are enabled.
-        // If set "true", monitor shows solid orange screen if no processors enabled.
-        // If set "false", monitor shows camera view without annotations.
-        //builder.setAutoStopLiveView(false);
 
         // Set and enable the processor.
         builder.addProcessor(aprilTag);
@@ -537,35 +623,27 @@ public class VisionTest extends LinearOpMode {
         // Build the Vision Portal, using the above settings.
         visionPortal = builder.build();
 
-        // Disable or re-enable the aprilTag processor at any time.
-        //visionPortal.setProcessorEnabled(aprilTag, true);
-
     }   // end method initAprilTag()
 
+    public void wiggle() {
+        int frequency = 15;
+        arm_slide.setPower(-1);
+        bottomleftmotor.setPower(-1);
+        bottomrightmotor.setPower(-1);
+        topleftmotor.setPower(-1);
+        toprightmotor.setPower(-1);
+        sleep(frequency);
+        arm_slide.setPower(1);
+        bottomleftmotor.setPower(1);
+        bottomrightmotor.setPower(1);
+        topleftmotor.setPower(1);
+        toprightmotor.setPower(1);
+        sleep(frequency);
+        arm_slide.setPower(0);
+        bottomleftmotor.setPower(0);
+        bottomrightmotor.setPower(0);
+        topleftmotor.setPower(0);
+        toprightmotor.setPower(0);
 
-
-    private void CheckAprilTag() {
-
-        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-        telemetry.addData("# AprilTags Detected", currentDetections.size());
-
-        // Step through the list of detections and display info for each one.
-        for (AprilTagDetection detection : currentDetections) {
-            if (detection.metadata != null) {
-                telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
-                telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detection.ftcPose.x, detection.ftcPose.y, detection.ftcPose.z));
-                telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
-                telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
-            } else {
-                telemetry.addLine(String.format("\n==== (ID %d) Unknown", detection.id));
-                telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detection.center.x, detection.center.y));
-            }
-        }   // end for() loop
-
-        // Add "key" information to telemetry
-        telemetry.addLine("\nkey:\nXYZ = X (Right), Y (Forward), Z (Up) dist.");
-        telemetry.addLine("PRY = Pitch, Roll & Yaw (XYZ Rotation)");
-        telemetry.addLine("RBE = Range, Bearing & Elevation");
-
-    }   // end method telemetryAprilTag()**/
+    }
 }
