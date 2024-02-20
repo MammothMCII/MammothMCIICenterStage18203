@@ -17,7 +17,6 @@ the controls are:
 - L1(Left Bumper): Top Gripper*
 - R1(Right Bumper): Bottom Gripper*
 - L2(Left Trigger): Analog speed reduction
-- R2(Right Trigger): Analog speed increase
 - Triangle: Flip hand*
 - Square: "jiggle"
 - Cross: Arm down
