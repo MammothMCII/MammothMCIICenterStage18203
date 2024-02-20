@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 
 ##[Unreleased] 
+
 removed the april tag stuff as it was cusing numerous crashes when attempting to open the camera for openCV, This came at the cost of the rotational snap which already did not work very well. The front autonomous has full placing on backdrop and a little pre-randomization selection for autonomous delay and end position. This substantially increases compatability with other teams while keeping the number of programs low.
 
 ### Added 
