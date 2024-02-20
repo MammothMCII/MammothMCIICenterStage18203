@@ -38,7 +38,7 @@ public class ResetTed extends LinearOpMode {
         // Put initialization blocks here.
         waitForStart();
         if (opModeIsActive()) {
-            hand_tilt.setPosition(0.48);
+            hand_tilt.setPosition(0.5);
 
             sleep(1000);
             do_something();

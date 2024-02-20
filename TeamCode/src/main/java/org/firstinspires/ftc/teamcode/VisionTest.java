@@ -83,7 +83,7 @@ public class VisionTest extends LinearOpMode {
 
     private static int wait_time = 0;
 
-    private static int end_pos = 0; // left,   1 = right,   2 = middle
+    private static int end_pos = 0; //0 = left,   1 = right,   2 = middle
 
 
 
@@ -119,6 +119,12 @@ public class VisionTest extends LinearOpMode {
     private static final boolean USE_WEBCAM = true;
     private AprilTagProcessor aprilTag;
     private VisionPortal visionPortal;
+
+    enum pos{
+        left,
+        middle,
+        right
+    }
 
 
     @Override
@@ -164,15 +170,11 @@ public class VisionTest extends LinearOpMode {
         Pose2d startPoseBlue = new Pose2d(-30, 60, Math.toRadians(-90));
 
 
-
-        //build trajectories
-
-
+        //build trajectories --------------------------------------------------------
 
         // red to tape
         Trajectory RedL_To_Tape = drive.trajectoryBuilder(startPoseRed)
                 .lineToConstantHeading(new Vector2d(-48, -38))
-                //.splineToConstantHeading(new Vector2d(-45, -45), Math.toRadians(0))
                 .build();
 
         Trajectory RedM_To_Tape = drive.trajectoryBuilder(startPoseRed)
@@ -185,9 +187,16 @@ public class VisionTest extends LinearOpMode {
 
 
         // red to wait pos
-        Trajectory Red_to_wait = drive.trajectoryBuilder(RedR_To_Tape.end())
+        Trajectory Red_to_waitR = drive.trajectoryBuilder(RedR_To_Tape.end())
                 .lineToConstantHeading(new Vector2d(-26, -33))
                 .splineToConstantHeading(new Vector2d(-60, -33), Math.toRadians(90))
+                .splineToConstantHeading(new Vector2d(-60, -24), Math.toRadians(90))
+                .splineToSplineHeading(new Pose2d(-50, -9, Math.toRadians(0)), Math.toRadians(0))
+                .build();
+
+        Trajectory Red_to_wait = drive.trajectoryBuilder(RedL_To_Tape.end())
+                .lineToConstantHeading(new Vector2d(-48, -50))
+                .splineToConstantHeading(new Vector2d(-60, -50), Math.toRadians(90))
                 .splineToConstantHeading(new Vector2d(-60, -24), Math.toRadians(90))
                 .splineToSplineHeading(new Pose2d(-50, -9, Math.toRadians(0)), Math.toRadians(0))
                 .build();
@@ -200,7 +209,7 @@ public class VisionTest extends LinearOpMode {
 
         //red board
         Trajectory Place_On_board_RedL = drive.trajectoryBuilder(Red_Return.end())
-                .lineToConstantHeading(new Vector2d(55, -25))
+                .lineToConstantHeading(new Vector2d(55, -23))
                 .build();
 
         Trajectory Place_On_board_RedM = drive.trajectoryBuilder(Red_Return.end())
@@ -219,7 +228,7 @@ public class VisionTest extends LinearOpMode {
                 .build();
 
         Trajectory Red_Place_returnR = drive.trajectoryBuilder((Place_On_board_RedM.end()))
-                .lineToConstantHeading(new Vector2d(35, -10))
+                .lineToConstantHeading(new Vector2d(35, -40))
                 .splineToConstantHeading(new Vector2d(53, -60), 0)
                 .build();
 
@@ -254,51 +263,44 @@ public class VisionTest extends LinearOpMode {
                 .lineToConstantHeading(new Vector2d(53, 33))
                 .build();
 
+        ///----------------------------------------------------------------------------------------------------
+
         bottom_grip.setPosition(0);
         top_grip.setPosition(0.8);
 
 
         // ask for wait time
-        telemetry.addLine("     ▲:3");
-        telemetry.addLine("■:no     O:5");
+        telemetry.addLine("     ▲:3                    | : Middle");
+        telemetry.addLine("■:no     O:5          Left------Right");
         telemetry.addLine("     X:Max ");
         telemetry.update();
 
         while(true){
+            telemetry.addData("end pos 0 = left,   1 = right", end_pos);
+            telemetry.addData("time delay", wait_time);
+            telemetry.update();
             if (gamepad1.x){
                 wait_time = 0;
-                break;
             }
             if (gamepad1.y){
                 wait_time = 3;
-                break;
             }
             if (gamepad1.a){
                 wait_time = 20;
-                break;//this will not work correctly
             }
             if (gamepad1.b){
                 wait_time = 5;
-                break;
             }
-        }
-        // ask for end position
-        telemetry.addLine("      ||:Middle");
-        telemetry.addLine("Left------Right");
-        telemetry.update();
-
-
-        while(true){
             if (gamepad1.dpad_left){
                 end_pos = 0;
-                break;
             }
             if (gamepad1.dpad_up){
                 end_pos = 2;
-                break;
             }
             if (gamepad1.dpad_right){
                 end_pos = 1;
+            }
+            if (gamepad1.touchpad){
                 break;
             }
         }
@@ -338,7 +340,7 @@ public class VisionTest extends LinearOpMode {
                         top_grip.setPosition(0);
                         sleep(1233456);
                     }
-                    if (valRight == max) {
+                    else if (valRight == max) {
                         //Blue Right
                         drive.followTrajectory(BlueR_To_Tape);
                         dropPixel();
@@ -346,7 +348,7 @@ public class VisionTest extends LinearOpMode {
                         top_grip.setPosition(0);
                         sleep(1233456);
                     }
-                    if (valMid == max) {
+                    else if (valMid == max) {
                         //Blue mid
                         drive.followTrajectory(BlueM_To_Tape);
                         dropPixel();
@@ -359,55 +361,69 @@ public class VisionTest extends LinearOpMode {
 
 
 
-
-
                 if (valLeftR == max || valMidR == max || valRightR == max) {
+                    pos state = pos.left;
+                    if (valMidR == max){
+                        state = pos.middle;
+                    }
+                    else if (valRightR == max){
+                        state = pos.right;
+                    }
+                    telemetry.addData("pos", state);
+
                     drive.setPoseEstimate(startPoseRed);
                     sleep(10);
-                    if (valLeftR == max) {
+
+                    if (state == pos.left) {
                         drive.followTrajectory(RedL_To_Tape);
-
+                        dropPixel();
+                        drive.followTrajectory(Red_to_wait);
                     }
-                    else if (valRightR == max) {
+                    else if (state == pos.right) {
                         drive.followTrajectory(RedR_To_Tape);
+                        dropPixel();
+                        drive.followTrajectory(Red_to_waitR);
                     }
-                    else if (valMidR == max) {
+                    else if (state == pos.middle) {
                         drive.followTrajectory(RedM_To_Tape);
+                        dropPixel();
+                        drive.followTrajectory(Red_to_wait);
                     }
 
-                    dropPixel();
-                    drive.followTrajectory(Red_to_wait);
                     delay_wait(wait_time);
                     drive.followTrajectory(Red_Return);
                     arm_slide.setPower(1);
-                    sleep(400);
+                    sleep(600);
                     arm_slide.setPower(0);
 
 
-                    if (valLeftR == max) {
+                    if (state == pos.left) {
                         drive.followTrajectory(Place_On_board_RedL);
                     }
-                    else if (valRightR == max) {
+                    else if (state == pos.right) {
                         drive.followTrajectory(Place_On_board_RedR);
                     }
-                    else if (valMidR == max) {
+                    else if (state == pos.middle) {
                         drive.followTrajectory(Place_On_board_RedM);
                     }
 
+                    sleep(10);
                     top_grip.setPosition(0);
                     wait_stop.reset();
                     sleep(10);
+
                     while (true){
                         wiggle();
                         if (wait_stop.seconds() > 1){
                             break;
                         }
                     }
+
                     sleep(50);
                     if (end_pos == 0) {
                         drive.followTrajectory(Red_Place_returnL);
                     }
-                    if (end_pos == 1) {
+                    else if (end_pos == 1) {
                         drive.followTrajectory(Red_Place_returnR);
                     }
                     sleep(1233456);

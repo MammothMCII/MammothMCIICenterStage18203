@@ -108,7 +108,7 @@ public class TeleopMain extends LinearOpMode {
 
                 telemetry.update();
 
-                drive_speed = (0.5 + (gamepad1.right_trigger/2) - (gamepad1.left_trigger/3));
+                drive_speed = (1 - (gamepad1.left_trigger/1.5));
 
 
                 // this handles macanum wheel driving with strafe
