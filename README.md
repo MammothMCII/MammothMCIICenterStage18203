@@ -38,7 +38,8 @@ it follows the basic line
 ```mermaid
 graph LR
 Initialize([Initialize Robot]) --> a[Close Grabber]
-a --> b[Program Start]
+a --> checkinput[[get pre randomization user input]]
+checkinput --> b[\Wait for start/]
 b --> c{check detection}
 
 c --> d[set position estimate to red side]
@@ -76,7 +77,15 @@ BM[pixel coordinate] --> bm3[back coordinate]
 BR[pixel coordinate] --> br3[back coordinate]
 
 br3 & bl3 & bm3 --> fb[position at backdrop]
+
 end
+
+Input([get pre randomization user input]) --> chek[\check input/]
+chek --> decide{what is the input}
+decide -- dpad up --> dup[set end position to middle]
+decide -- touchpad --> break
+dup --> chek
+
 
 ```
 
