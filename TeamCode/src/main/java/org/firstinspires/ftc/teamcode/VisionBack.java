@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -60,7 +61,9 @@ import java.util.List;
 public class VisionBack extends LinearOpMode {
     private ElapsedTime runtime = new ElapsedTime();
 
-    //0 means skystone, 1 means yellow stone
+    private ElapsedTime wait_stop = new ElapsedTime();
+
+
     //-1 for debug, but we can keep it like this because if it works, it should change to either 0 or 255
     private static int valMid = -1;
     private static int valLeft = -1;
@@ -72,6 +75,9 @@ public class VisionBack extends LinearOpMode {
 
     private static int max = 0;
 
+    private static int wait_time = 0;
+
+    private static int end_pos = 0; //0 = left,   1 = right,   2 = middle
 
     private static float rectHeight = .6f/8f;
     private static float rectWidth = 1.5f/8f;
@@ -96,11 +102,31 @@ public class VisionBack extends LinearOpMode {
     private Servo hand_tilt;
     private Servo bottom_grip;
     private DcMotor arm_slide;
+    private DcMotor topleftmotor;
+    private DcMotor bottomleftmotor;
+    private DcMotor toprightmotor;
+    private DcMotor bottomrightmotor;
+
+
+    enum pos{
+        left,
+        middle,
+        right
+    }
 
 
     @Override
     public void runOpMode() throws InterruptedException {
 
+        topleftmotor = hardwareMap.get(DcMotor.class, "top left motor");
+        bottomleftmotor = hardwareMap.get(DcMotor.class, "bottom left motor");
+        toprightmotor = hardwareMap.get(DcMotor.class, "top right motor");
+        bottomrightmotor = hardwareMap.get(DcMotor.class, "bottom right motor");
+
+        topleftmotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        bottomleftmotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        toprightmotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        bottomrightmotor.setDirection(DcMotorSimple.Direction.REVERSE);
         top_grip = hardwareMap.get(Servo.class, "top_grip");
         bottom_grip = hardwareMap.get(Servo.class, "bottom_grip");
         hand_tilt = hardwareMap.get(Servo.class, "hand_tilt");
@@ -109,7 +135,7 @@ public class VisionBack extends LinearOpMode {
 
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
 
-        //P.S. if you're using the latest version of easyopencv, you might need to change the next line to the following:
+
         phoneCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
 
         phoneCam.openCameraDevice();//open camera
@@ -128,76 +154,205 @@ public class VisionBack extends LinearOpMode {
         Pose2d startPoseBlue = new Pose2d(17, 60, Math.toRadians(-90));
 
 
+        //build trajectories --------------------------------------------------------
 
-        //build trajectories
-
-
-
-        // red L
+        // red to tape
         Trajectory RedL_To_Tape = drive.trajectoryBuilder(startPoseRed)
-                .splineToConstantHeading(new Vector2d(1, -34), Math.toRadians(180))
-                .build();
-        Trajectory RedL_ReturnL = drive.trajectoryBuilder(RedL_To_Tape.end())
-                .splineToConstantHeading(new Vector2d(1, -35), Math.toRadians(-90))
-                .splineToConstantHeading(new Vector2d(20, -35), Math.toRadians(0))
-                .splineToSplineHeading(new Pose2d(58, -13, Math.toRadians(0)), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(0, -31), Math.toRadians(180))
                 .build();
 
-        // red M
         Trajectory RedM_To_Tape = drive.trajectoryBuilder(startPoseRed)
                 .lineToConstantHeading(new Vector2d(12, -29))
                 .build();
 
-        Trajectory RedM_Return = drive.trajectoryBuilder(RedM_To_Tape.end())
-                .lineToConstantHeading(new Vector2d(30, -40))
-                .splineToSplineHeading(new Pose2d(58, -14, Math.toRadians(0)), Math.toRadians(0))
-                .build();
-
-        // red R
         Trajectory RedR_To_Tape = drive.trajectoryBuilder(startPoseRed)
                 .splineToConstantHeading(new Vector2d(25, -34), Math.toRadians(0))
                 .build();
 
-        Trajectory RedR_ReturnNew = drive.trajectoryBuilder(RedR_To_Tape.end())
-                .lineToConstantHeading(new Vector2d(30, -45))
-                .splineToSplineHeading(new Pose2d(58, -14, Math.toRadians(0)), Math.toRadians(0))
+
+        // red to wait pos
+        Trajectory Red_to_waitR = drive.trajectoryBuilder(RedR_To_Tape.end())
+                //.splineToSplineHeading(new Pose2d(30, -45, Math.toRadians(0)), Math.toRadians(0))
+                .lineToLinearHeading(new Pose2d(30, -45, Math.toRadians(0)))
+                //.splineToSplineHeading(new Pose2d(58, -14, Math.toRadians(0)), Math.toRadians(0))
+                .build();
+
+        Trajectory Red_to_wait = drive.trajectoryBuilder(RedL_To_Tape.end())
+                .lineToConstantHeading(new Vector2d(1, -32.5))
+                .splineToConstantHeading(new Vector2d(20, -33), Math.toRadians(0))
+                //.splineToSplineHeading(new Pose2d(58, -13, Math.toRadians(0)), Math.toRadians(0))
+                .build();
+
+        //red return
+        Trajectory Red_Return = drive.trajectoryBuilder(Red_to_wait.end())
+                //.lineToConstantHeading(new Vector2d(30, -9))
+                .splineToLinearHeading(new Pose2d(40, -25, Math.toRadians(0)), 0)
+                .build();
+
+        //red board
+        Trajectory Place_On_board_RedL = drive.trajectoryBuilder(Red_Return.end())
+                .lineToConstantHeading(new Vector2d(56, -28))
+                .build();
+
+        Trajectory Place_On_board_RedM = drive.trajectoryBuilder(Red_Return.end())
+                .lineToConstantHeading(new Vector2d(56, -35))
+                .build();
+
+        Trajectory Place_On_board_RedR = drive.trajectoryBuilder(Red_Return.end())
+                .lineToConstantHeading(new Vector2d(56, -42))
                 .build();
 
 
-        // Blue R
+        //park
+        Trajectory Red_Place_returnL = drive.trajectoryBuilder((Place_On_board_RedM.end()))
+                .lineToConstantHeading(new Vector2d(35, -10))
+                .splineToConstantHeading(new Vector2d(53, -7), 0)
+                .build();
+
+        Trajectory Red_Place_returnR = drive.trajectoryBuilder((Place_On_board_RedM.end()))
+                .lineToConstantHeading(new Vector2d(35, -40))
+                .splineToConstantHeading(new Vector2d(53, -60), 0)
+                .build();
+
+
+
+        ///--------------------------------------------------------------------------------------------------
+        // Blue R to tape
         Trajectory BlueR_To_Tape = drive.trajectoryBuilder(startPoseBlue)
                 .splineToConstantHeading(new Vector2d(1, 33), Math.toRadians(180))
                 .build();
-        Trajectory BlueR_Return = drive.trajectoryBuilder(BlueR_To_Tape.end())
+
+        Trajectory BlueL_To_Tape = drive.trajectoryBuilder(startPoseBlue)
+                .splineToConstantHeading(new Vector2d(25, 33), Math.toRadians(0))
+                .build();
+
+        Trajectory BlueM_To_Tape = drive.trajectoryBuilder(startPoseBlue)
+                .lineToConstantHeading(new Vector2d(12, 28))
+                .build();
+
+
+
+        // Blue to wait pos
+        Trajectory Blue_to_waitL = drive.trajectoryBuilder(BlueL_To_Tape.end())
+                .lineToConstantHeading(new Vector2d(30, 45))
+                .splineToSplineHeading(new Pose2d(58, 13, Math.toRadians(0)), Math.toRadians(0))
+                .build();
+
+        Trajectory Blue_to_wait = drive.trajectoryBuilder(BlueR_To_Tape.end())
                 .splineToConstantHeading(new Vector2d(1, 34), Math.toRadians(90))
                 .splineToConstantHeading(new Vector2d(20, 34), Math.toRadians(0))
                 .splineToSplineHeading(new Pose2d(58, 13, Math.toRadians(0)), Math.toRadians(0))
                 .build();
 
-        // Blue M
-        Trajectory BlueM_To_Tape = drive.trajectoryBuilder(startPoseBlue)
-                .lineToConstantHeading(new Vector2d(12, 28))
+        //Blue return
+        Trajectory Blue_Return = drive.trajectoryBuilder(Blue_to_wait.end())
+                .lineToConstantHeading(new Vector2d(30, 9))
+                .splineToConstantHeading(new Vector2d(40, 20), 0)
                 .build();
 
-        Trajectory BlueM_Return = drive.trajectoryBuilder(BlueM_To_Tape.end())
-                .lineToConstantHeading(new Vector2d(30, 40))
-                .splineToSplineHeading(new Pose2d(58, 13, Math.toRadians(0)), Math.toRadians(0))
+
+        //Blue board
+        Trajectory Place_On_board_BlueR = drive.trajectoryBuilder(Blue_Return.end())
+                .lineToConstantHeading(new Vector2d(55, 23))
                 .build();
 
-        // Blue L
-        Trajectory BlueL_To_Tape = drive.trajectoryBuilder(startPoseBlue)
-                .splineToConstantHeading(new Vector2d(25, 33), Math.toRadians(0))
+        Trajectory Place_On_board_BlueM = drive.trajectoryBuilder(Blue_Return.end())
+                .lineToConstantHeading(new Vector2d(55, 28))
                 .build();
 
-        Trajectory BlueL_Return = drive.trajectoryBuilder(BlueL_To_Tape.end())
-                .lineToConstantHeading(new Vector2d(30, 45))
-                .splineToSplineHeading(new Pose2d(58, 13, Math.toRadians(0)), Math.toRadians(0))
+        Trajectory Place_On_board_BlueL = drive.trajectoryBuilder(Blue_Return.end())
+                .lineToConstantHeading(new Vector2d(55, 37))
                 .build();
+
+
+        //park
+        Trajectory Blue_Place_returnL = drive.trajectoryBuilder((Place_On_board_BlueM.end()))
+                .lineToConstantHeading(new Vector2d(35, 40))
+                .splineToConstantHeading(new Vector2d(53, 60), 0)
+                .build();
+
+        Trajectory Blue_Place_returnR = drive.trajectoryBuilder((Place_On_board_BlueM.end()))
+                .lineToConstantHeading(new Vector2d(35, 10))
+                .splineToConstantHeading(new Vector2d(53, 7), 0)
+                .build();
+
+        ///----------------------------------------------------------------------------------------------------
 
         bottom_grip.setPosition(0);
         top_grip.setPosition(0.8);
 
+        String middle = "Middle";
+        String left = "Left";
+        String right = "Right";
+        String three = "3";
+        String no = "no";
+        String five = "5";
+        String tmax = "max";
+
+        //telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));   #ref
+        while(true){
+            telemetry.addLine(String.format("░░░░░■%s░┌---------┐░░░▲:%s░░░░░", middle, three));
+            telemetry.addLine(String.format("░%s■=╩=■%s|  accept |░■:%s░░O:%s░", left, right, no, five));
+            telemetry.addLine(String.format("░░░░░░░░░░░└---------┘░░░░X:%s░░", tmax));
+            telemetry.addLine("DO NOT HIT START");
+
+            telemetry.update();
+            if (gamepad1.x){
+                wait_time = 0;
+                three = "3";
+                no = "n\u0332o\u0332";
+                five = "5";
+                tmax = "max";
+            }
+            else if (gamepad1.y){
+                wait_time = 3;
+                three = "3\u0332";
+                no = "no";
+                five = "5";
+                tmax = "max";
+            }
+            else if (gamepad1.a){
+                wait_time = 7;
+                three = "3";
+                no = "no";
+                five = "5";
+                tmax = "m\u0332a\u0332x\u0332";
+            }
+            else if (gamepad1.b){
+                wait_time = 5;
+                three = "3";
+                no = "no";
+                five = "5\u0332";
+                tmax = "max";
+            }
+            if (gamepad1.dpad_left){
+                end_pos = 0;
+                middle = "Middle";
+                left = "L\u0332e\u0332f\u0332t\u0332";
+                right = "Right";
+            }
+            else if (gamepad1.dpad_up){
+                end_pos = 2;
+                middle = "M\u0332i\u0332d\u0332d\u0332l\u0332e\u0332";
+                left = "Left";
+                right = "Right";
+            }
+            else if (gamepad1.dpad_right){
+                end_pos = 1;
+                middle = "Middle";
+                left = "Left";
+                right = "R\u0332i\u0332g\u0332h\u0332t\u0332";
+            }
+            if (gamepad1.touchpad){
+                break;
+            }
+        }
+
+
+
         telemetry.addData("Robot has initialized", ")");
+        telemetry.addData("end pos", end_pos);
+        telemetry.addData("time delay", wait_time);
         telemetry.update();
 
         waitForStart();
@@ -217,57 +372,146 @@ public class VisionBack extends LinearOpMode {
 
                 if(isStopRequested()) return;
 
-
+                //blue side
                 if (valLeft == max || valMid == max || valRight == max) {
                     drive.setPoseEstimate(startPoseBlue);
-                    if (valLeft == max) {
-                        //blue left
+                    delay_wait(wait_time);
+                    VisionTest.pos state = VisionTest.pos.left;
+                    if (valMid == max){
+                        state = VisionTest.pos.middle;
+                    }
+                    else if (valRight == max){
+                        state = VisionTest.pos.right;
+                    }
+                    sleep(10);
+
+
+                    if (state == VisionTest.pos.left) {
                         drive.followTrajectory(BlueL_To_Tape);
                         dropPixel();
-                        drive.followTrajectory(BlueL_Return);
-                        top_grip.setPosition(0);
-                        sleep(1233456);
+                        drive.followTrajectory(Blue_to_waitL);
                     }
-                    if (valRight == max) {
-                        //Blue Right
+                    else if (state == VisionTest.pos.right) {
                         drive.followTrajectory(BlueR_To_Tape);
                         dropPixel();
-                        drive.followTrajectory(BlueR_Return);
-                        top_grip.setPosition(0);
-                        sleep(1233456);
+                        drive.followTrajectory(Blue_to_wait);
                     }
-                    if (valMid == max) {
-                        //Blue mid
+                    else if (state == VisionTest.pos.middle) {
                         drive.followTrajectory(BlueM_To_Tape);
                         dropPixel();
-                        drive.followTrajectory(BlueM_Return);
-                        top_grip.setPosition(0);
-                        sleep(1233456);
+                        drive.followTrajectory(Blue_to_wait);
                     }
+
+
+                    drive.followTrajectory(Blue_Return);
+                    arm_slide.setPower(1);
+                    sleep(600);
+                    arm_slide.setPower(0);
+
+
+                    if (state == VisionTest.pos.left) {
+                        drive.followTrajectory(Place_On_board_BlueL);
+                    }
+                    else if (state == VisionTest.pos.right) {
+                        drive.followTrajectory(Place_On_board_BlueR);
+                    }
+                    else if (state == VisionTest.pos.middle) {
+                        drive.followTrajectory(Place_On_board_BlueM);
+                    }
+
+                    sleep(10);
+                    top_grip.setPosition(0);
+                    wait_stop.reset();
+                    sleep(10);
+
+                    while (true){
+                        wiggle();
+                        if (wait_stop.seconds() > 1){
+                            break;
+                        }
+                    }
+
+                    sleep(50);
+                    if (end_pos == 0) {
+                        drive.followTrajectory(Blue_Place_returnL);
+                    }
+                    else if (end_pos == 1) {
+                        drive.followTrajectory(Blue_Place_returnR);
+                    }
+                    sleep(12345678);
                 }
+
+
+
+
+                //red side=================================================================
+
                 if (valLeftR == max || valMidR == max || valRightR == max) {
+                    VisionTest.pos state = VisionTest.pos.left;
+                    delay_wait(wait_time);
+                    if (valMidR == max){
+                        state = VisionTest.pos.middle;
+                    }
+                    else if (valRightR == max){
+                        state = VisionTest.pos.right;
+                    }
+
                     drive.setPoseEstimate(startPoseRed);
-                    if (valLeftR == max) {
+                    sleep(10);
+
+                    if (state == VisionTest.pos.left) {
                         drive.followTrajectory(RedL_To_Tape);
                         dropPixel();
-                        drive.followTrajectory(RedL_ReturnL);
-                        top_grip.setPosition(0);
-                        sleep(1233456); // without this sleep the robot will follow an extra trajectory, dont know why
+                        drive.followTrajectory(Red_to_wait);
                     }
-                    if (valRightR == max) {
+                    else if (state == VisionTest.pos.right) {
                         drive.followTrajectory(RedR_To_Tape);
                         dropPixel();
-                        drive.followTrajectory(RedR_ReturnNew);
-                        top_grip.setPosition(0);
-                        sleep(1233456);
+                        drive.followTrajectory(Red_to_waitR);
                     }
-                    if (valMidR == max) {
+                    else if (state == VisionTest.pos.middle) {
                         drive.followTrajectory(RedM_To_Tape);
                         dropPixel();
-                        drive.followTrajectory(RedM_Return);
-                        top_grip.setPosition(0);
-                        sleep(1233456);
+                        drive.followTrajectory(Red_to_wait);
                     }
+
+
+                    drive.followTrajectory(Red_Return);
+                    arm_slide.setPower(1);
+                    sleep(600);
+                    arm_slide.setPower(0);
+
+
+                    if (state == VisionTest.pos.left) {
+                        drive.followTrajectory(Place_On_board_RedL);
+                    }
+                    else if (state == VisionTest.pos.right) {
+                        drive.followTrajectory(Place_On_board_RedR);
+                    }
+                    else if (state == VisionTest.pos.middle) {
+                        drive.followTrajectory(Place_On_board_RedM);
+                    }
+
+                    sleep(10);
+                    top_grip.setPosition(0);
+                    wait_stop.reset();
+                    sleep(10);
+
+                    while (true){
+                        wiggle();
+                        if (wait_stop.seconds() > 1){
+                            break;
+                        }
+                    }
+
+                    sleep(50);
+                    if (end_pos == 0) {
+                        drive.followTrajectory(Red_Place_returnL);
+                    }
+                    else if (end_pos == 1) {
+                        drive.followTrajectory(Red_Place_returnR);
+                    }
+                    sleep(1233456);
                 }
 
 
@@ -435,7 +679,39 @@ public class VisionBack extends LinearOpMode {
         sleep(100);
         arm_slide.setPower(0);
         arm_tilt.setPower(0);
-        //hand_tilt.setPosition(0.2);
+        hand_tilt.setPosition(0.2);
+
+    }
+
+    public void delay_wait(int wait_dela) {
+        wait_stop.reset();
+        while(true){
+            if (wait_stop.seconds() > wait_dela){
+                break;
+            }
+        }
+    }
+
+
+    public void wiggle() {
+        int frequency = 15;
+        arm_slide.setPower(-1);
+        bottomleftmotor.setPower(-1);
+        bottomrightmotor.setPower(-1);
+        topleftmotor.setPower(-1);
+        toprightmotor.setPower(-1);
+        sleep(frequency);
+        arm_slide.setPower(1);
+        bottomleftmotor.setPower(1);
+        bottomrightmotor.setPower(1);
+        topleftmotor.setPower(1);
+        toprightmotor.setPower(1);
+        sleep(frequency);
+        arm_slide.setPower(0);
+        bottomleftmotor.setPower(0);
+        bottomrightmotor.setPower(0);
+        topleftmotor.setPower(0);
+        toprightmotor.setPower(0);
 
     }
 }
