@@ -7,9 +7,11 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.drive.AutonomousConstants;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 
 @Autonomous(name = "AutoRed3", group = "Autonomous")
+@Disabled
 public class SlightlyLessBasicAutoLeft3 extends LinearOpMode {
     @Override
     public void runOpMode() {

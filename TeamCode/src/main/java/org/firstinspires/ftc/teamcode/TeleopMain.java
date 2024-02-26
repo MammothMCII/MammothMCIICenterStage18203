@@ -108,7 +108,7 @@ public class TeleopMain extends LinearOpMode {
 
                 telemetry.update();
 
-                drive_speed = (1 - (gamepad1.left_trigger/1.5));
+                drive_speed = (1 - (gamepad1.right_trigger/1.5));
 
 
                 // this handles macanum wheel driving with strafe
@@ -199,6 +199,7 @@ public class TeleopMain extends LinearOpMode {
                 //wiggle
                 if (gamepad1.x) {
                     wiggle();
+
                 }
 
 
@@ -214,11 +215,11 @@ public class TeleopMain extends LinearOpMode {
                 }
                 else if (!gamepad1.dpad_right) planeToggle = false;
 
-                /**
-                while (gamepad1.a){
-                    lockToBackdrop();
+
+                if (gamepad1.a){
+                    hand_tilt.setPosition(0);
                 }
-                 **/
+
 
 
                 telemetry.update();

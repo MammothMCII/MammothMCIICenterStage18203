@@ -219,11 +219,11 @@ public class VisionBack extends LinearOpMode {
         ///--------------------------------------------------------------------------------------------------
         // Blue R to tape
         Trajectory BlueR_To_Tape = drive.trajectoryBuilder(startPoseBlue)
-                .splineToConstantHeading(new Vector2d(1, 33), Math.toRadians(180))
+                .splineToConstantHeading(new Vector2d(1, 32), Math.toRadians(180))
                 .build();
 
         Trajectory BlueL_To_Tape = drive.trajectoryBuilder(startPoseBlue)
-                .splineToConstantHeading(new Vector2d(25, 33), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(26, 33), Math.toRadians(0))
                 .build();
 
         Trajectory BlueM_To_Tape = drive.trajectoryBuilder(startPoseBlue)
@@ -234,40 +234,44 @@ public class VisionBack extends LinearOpMode {
 
         // Blue to wait pos
         Trajectory Blue_to_waitL = drive.trajectoryBuilder(BlueL_To_Tape.end())
-                .lineToConstantHeading(new Vector2d(30, 45))
-                .splineToSplineHeading(new Pose2d(58, 13, Math.toRadians(0)), Math.toRadians(0))
+                //.lineToConstantHeading(new Vector2d(30, 45))
+                //.splineToSplineHeading(new Pose2d(58, 13, Math.toRadians(0)), Math.toRadians(0))
+                .lineToLinearHeading(new Pose2d(30, 45, Math.toRadians(0)))
                 .build();
 
         Trajectory Blue_to_wait = drive.trajectoryBuilder(BlueR_To_Tape.end())
-                .splineToConstantHeading(new Vector2d(1, 34), Math.toRadians(90))
-                .splineToConstantHeading(new Vector2d(20, 34), Math.toRadians(0))
-                .splineToSplineHeading(new Pose2d(58, 13, Math.toRadians(0)), Math.toRadians(0))
+                .lineToConstantHeading(new Vector2d(1, 32.5))
+                .splineToConstantHeading(new Vector2d(20, 32.5), Math.toRadians(0))
+
+                //.splineToSplineHeading(new Pose2d(58, 13, Math.toRadians(0)), Math.toRadians(0))
                 .build();
 
         //Blue return
         Trajectory Blue_Return = drive.trajectoryBuilder(Blue_to_wait.end())
-                .lineToConstantHeading(new Vector2d(30, 9))
-                .splineToConstantHeading(new Vector2d(40, 20), 0)
+                //.lineToConstantHeading(new Vector2d(30, 9))
+                //.splineToConstantHeading(new Vector2d(40, 20), 0)
+
+                .splineToLinearHeading(new Pose2d(40, 25, Math.toRadians(0)), 0)
                 .build();
 
 
         //Blue board
         Trajectory Place_On_board_BlueR = drive.trajectoryBuilder(Blue_Return.end())
-                .lineToConstantHeading(new Vector2d(55, 23))
+                .lineToConstantHeading(new Vector2d(55, 26))
                 .build();
 
         Trajectory Place_On_board_BlueM = drive.trajectoryBuilder(Blue_Return.end())
-                .lineToConstantHeading(new Vector2d(55, 28))
+                .lineToConstantHeading(new Vector2d(55, 33))
                 .build();
 
         Trajectory Place_On_board_BlueL = drive.trajectoryBuilder(Blue_Return.end())
-                .lineToConstantHeading(new Vector2d(55, 37))
+                .lineToConstantHeading(new Vector2d(55, 40))
                 .build();
 
 
         //park
         Trajectory Blue_Place_returnL = drive.trajectoryBuilder((Place_On_board_BlueM.end()))
-                .lineToConstantHeading(new Vector2d(35, 40))
+                .lineToConstantHeading(new Vector2d(39, 40))
                 .splineToConstantHeading(new Vector2d(53, 60), 0)
                 .build();
 
