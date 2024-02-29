@@ -138,3 +138,7 @@ br3 & bl3 & bm3 --> fb[position at backdrop]
 end
 
 ```
+
+
+In autonomous we discovered that there is one spot where the pixel can reliably be placed from a heigt and not bounce out of its intended position
+
