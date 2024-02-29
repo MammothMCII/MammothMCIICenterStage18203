@@ -274,7 +274,7 @@ public class VisionTest extends LinearOpMode {
 
         //Blue board
         Trajectory Place_On_board_BlueR = drive.trajectoryBuilder(Blue_Return.end())
-                .lineToConstantHeading(new Vector2d(55, 23))
+                .lineToConstantHeading(new Vector2d(55, 19))
                 .build();
 
         Trajectory Place_On_board_BlueM = drive.trajectoryBuilder(Blue_Return.end())
@@ -282,7 +282,7 @@ public class VisionTest extends LinearOpMode {
                 .build();
 
         Trajectory Place_On_board_BlueL = drive.trajectoryBuilder(Blue_Return.end())
-                .lineToConstantHeading(new Vector2d(55, 37))
+                .lineToConstantHeading(new Vector2d(55, 35))
                 .build();
 
 

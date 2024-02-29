@@ -191,7 +191,7 @@ public class VisionBack extends LinearOpMode {
 
         //red board
         Trajectory Place_On_board_RedL = drive.trajectoryBuilder(Red_Return.end())
-                .lineToConstantHeading(new Vector2d(56, -28))
+                .lineToConstantHeading(new Vector2d(56, -27))
                 .build();
 
         Trajectory Place_On_board_RedM = drive.trajectoryBuilder(Red_Return.end())
@@ -257,7 +257,7 @@ public class VisionBack extends LinearOpMode {
 
         //Blue board
         Trajectory Place_On_board_BlueR = drive.trajectoryBuilder(Blue_Return.end())
-                .lineToConstantHeading(new Vector2d(55, 26))
+                .lineToConstantHeading(new Vector2d(55, 24.5))
                 .build();
 
         Trajectory Place_On_board_BlueM = drive.trajectoryBuilder(Blue_Return.end())
@@ -265,7 +265,7 @@ public class VisionBack extends LinearOpMode {
                 .build();
 
         Trajectory Place_On_board_BlueL = drive.trajectoryBuilder(Blue_Return.end())
-                .lineToConstantHeading(new Vector2d(55, 40))
+                .lineToConstantHeading(new Vector2d(55, 38))
                 .build();
 
 
@@ -409,7 +409,7 @@ public class VisionBack extends LinearOpMode {
 
                     drive.followTrajectory(Blue_Return);
                     arm_slide.setPower(1);
-                    sleep(600);
+                    sleep(400);
                     arm_slide.setPower(0);
 
 
@@ -482,7 +482,7 @@ public class VisionBack extends LinearOpMode {
 
                     drive.followTrajectory(Red_Return);
                     arm_slide.setPower(1);
-                    sleep(600);
+                    sleep(400);
                     arm_slide.setPower(0);
 
 
