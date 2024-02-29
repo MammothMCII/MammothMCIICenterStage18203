@@ -3,20 +3,22 @@
 All notable changes to this project will be documented in this file.
 
 
-## [Unreleased] 
+## [2024-02-29] 
 
 removed the april tag stuff as it was cusing numerous crashes when attempting to open the camera for openCV, This came at the cost of the rotational snap which already did not work very well. The front autonomous has full placing on backdrop and a little pre-randomization selection for autonomous delay and end position. This substantially increases compatability with other teams while keeping the number of programs low.
 
 ### Added 
-- added full placement of yellow pixel on backdrop for front-side autonomous
+- added full placement of yellow pixel on backdrop for all autonomous programs
 - added autonomous selection for delay when going to place on backdrop
 - added selection for parking position in autonomous
-- added small GUI to let you know what you ahve selected
+- added small GUI to let you know what you have selected
+- an option to tilt the hand more in teleop
 
 ### Changed
 - autonomous flow is generally more efficient
 - robot movement is now always at full speed and uses left tiggr to slow down
 - removed rotational snap to backboard
+- hid old autonomous from DS
 
 ### Fixed
 - fixed a crash that would occur when switching from teleop main to an autonomous that uses openCV
