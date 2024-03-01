@@ -50,42 +50,43 @@ d -- Left --> RL
 d -- Middle --> RM
 d -- Right -->RR
 
-RL[pixel coordinate] --> rl2[back coordinate]
-rl2 --> rl3[fancy spline]
+RL[pixel coordinate] --> rl2[move to wait left]
 
-RM[pixel coordinate] --> rm2[back coordinate]
-rm2 --> rm3[fancy spline]
+RM[pixel coordinate] --> rm2[move to wait right]
 
-RR[pixel coordinate] --> rr2[back coordinate]
-rr2 --> rr3[fancy spline]
+RR[pixel coordinate] --> rm2[move to wait right]
 
-rr3 & rl3 --> f[Tile at backdrop closest to center]
+rl1 & rm2 --> wait[wait for preselected time] --> retR[return to backdrop] --> lftarm[lift arm]
+lftarm --> bdl[move to backdrop left] & bdm[move to backdrop middle] & bdr[move to backdrop right] --> dpx[release yellow pixel] --> wggl[wiggle to dilodge]
+wggl -- park left selected --> mtpl[move to left parking place]
+wggl -- park right selected --> mtpr[move to right parking place]
+
+
 end
-
+mtpl & mtpr & mtplb & mtprb --> fin([end])
 
 
 subgraph Blue side
 
-e -- Left --> BL
-e -- Middle --> BM
-e -- Right --> BR
+RL[pixel coordinate] --> rl2[move to wait left]
 
-BL[pixel coordinate] --> bl3[back coordinate]
+RM[pixel coordinate] --> rm2[move to wait right]
 
-BM[pixel coordinate] --> bm3[back coordinate]
+RR[pixel coordinate] --> rm2[move to wait right]
 
-BR[pixel coordinate] --> br3[back coordinate]
-
-br3 & bl3 & bm3 --> fb[position at backdrop]
+rl1 & rm2 --> wait[wait for preselected time] --> retR[return to backdrop] --> lftarm[lift arm]
+lftarm --> bdlb[move to backdrop left] & bdmb[move to backdrop middle] & bdrb[move to backdrop right] --> dpx[release yellow pixel] --> wggl[wiggle to dilodge]
+wggl -- park left selected --> mtplb[move to left parking place]
+wggl -- park right selected --> mtprb[move to right parking place]
 
 end
-
+subgraph pre randomization
 Input([get pre randomization user input]) --> chek[\check input/]
 chek --> decide{what is the input}
 decide -- dpad up --> dup[set end position to middle]
 decide -- touchpad --> break
 dup --> chek
-
+end
 
 ```
 
@@ -140,5 +141,5 @@ end
 ```
 
 
-In autonomous we discovered that there is one spot where the pixel can reliably be placed from a heigt and not bounce out of its intended position
+In autonomous we discovered that there is one spot where the pixel can reliably be placed from a height and not bounce out of its intended position
 
