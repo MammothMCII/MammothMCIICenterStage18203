@@ -45,10 +45,7 @@ b --> c{check detection}
 c --> d[set position estimate to red side]
 c --> e[set position estimate to blue side]
 
-
-subgraph Red side
-end
-mtplb & mtprb --> fin([end])
+mtplb & mtprb & mtplr & mtprr--> fin([end])
 
 BL[pixel coordinate] --> bl2[move to wait left]
 
@@ -85,6 +82,45 @@ BR
 bdrb
 end
 
+end
+
+RL[pixel coordinate] --> rl2[move to wait left]
+
+RM[pixel coordinate] --> rm2[move to wait right]
+
+RR[pixel coordinate] --> rm2[move to wait right]
+
+rl2 & rm2 --> wait[wait for preselected time] --> retRR[return to backdrop] --> lftarm[lift arm]
+lftarm --> rdlb[move to backdrop left] & rdmb[move to backdrop middle] & rdrb[move to backdrop right] --> dpx[release yellow pixel] --> wggl
+wggl -- park left selected --> mtplr[move to left parking place]
+wggl -- park right selected --> mtprr[move to right parking place]
+
+
+
+subgraph Red side
+
+d -- Left --> RL
+d -- Middle --> RM
+d -- Right -->RR
+rl2
+rm2
+mtplr
+mtprr
+
+retRR
+
+subgraph Red left
+RL
+rdlb
+end
+subgraph Red Middle
+RM
+rdmb
+end
+subgraph Red Right
+RR
+rdrb
+end
 end
 
 
