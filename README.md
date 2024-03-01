@@ -45,41 +45,52 @@ b --> c{check detection}
 c --> d[set position estimate to red side]
 c --> e[set position estimate to blue side]
 
+
 subgraph Red side
-d -- Left --> RL
-d -- Middle --> RM
-d -- Right -->RR
-
-RL[pixel coordinate] --> rl2[move to wait left]
-
-RM[pixel coordinate] --> rm2[move to wait right]
-
-RR[pixel coordinate] --> rm2[move to wait right]
-
-rl1 & rm2 --> wait[wait for preselected time] --> retR[return to backdrop] --> lftarm[lift arm]
-lftarm --> bdl[move to backdrop left] & bdm[move to backdrop middle] & bdr[move to backdrop right] --> dpx[release yellow pixel] --> wggl[wiggle to dilodge]
-wggl -- park left selected --> mtpl[move to left parking place]
-wggl -- park right selected --> mtpr[move to right parking place]
-
-
 end
-mtpl & mtpr & mtplb & mtprb --> fin([end])
+mtplb & mtprb --> fin([end])
 
+BL[pixel coordinate] --> bl2[move to wait left]
 
-subgraph Blue side
+BM[pixel coordinate] --> bl2[move to wait left]
 
-RL[pixel coordinate] --> rl2[move to wait left]
+BR[pixel coordinate] --> bm2[move to wait right]
 
-RM[pixel coordinate] --> rm2[move to wait right]
-
-RR[pixel coordinate] --> rm2[move to wait right]
-
-rl1 & rm2 --> wait[wait for preselected time] --> retR[return to backdrop] --> lftarm[lift arm]
-lftarm --> bdlb[move to backdrop left] & bdmb[move to backdrop middle] & bdrb[move to backdrop right] --> dpx[release yellow pixel] --> wggl[wiggle to dilodge]
+bl2 & bm2 --> wait[wait for preselected time] --> retRB[return to backdrop] --> lftarm[lift arm]
+lftarm --> bdlb[move to backdrop left] & bdmb[move to backdrop middle] & bdrb[move to backdrop right] --> dpx[release yellow pixel] --> wggl
 wggl -- park left selected --> mtplb[move to left parking place]
 wggl -- park right selected --> mtprb[move to right parking place]
 
+subgraph Blue side
+e -- Left --> BL
+e -- Middle --> BM
+e -- Right -->BR
+bl2
+bm2
+mtplb
+mtprb
+
+retRB
+
+subgraph Blue left
+BL
+bdlb
 end
+subgraph Blue Middle
+BM
+bdmb
+end
+subgraph Blue Right
+BR
+bdrb
+end
+
+end
+
+
+
+
+
 subgraph pre randomization
 Input([get pre randomization user input]) --> chek[\check input/]
 chek --> decide{what is the input}
@@ -87,6 +98,8 @@ decide -- dpad up --> dup[set end position to middle]
 decide -- touchpad --> break
 dup --> chek
 end
+
+wggl[wiggle to dislodge]
 
 ```
 
