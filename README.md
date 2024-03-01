@@ -34,6 +34,18 @@ it follows the basic line
 - the spot with either the most red or most blue is selected as the location for the team prop
 - travels to the line and drops pixel
 - then depending on the identified side, parks at the backdrop
+
+### Vision Back:
+this uses the white tape on the robot to line up with the inner edge of the left side of the tile on the side near the backdrop. 
+it follows the basic line 
+- check three locations for team prop
+- the spot with either the most red or most blue is selected as the location for the team prop
+- travels to the line and drops pixel
+- then depending on the identified side, parks at the backdrop
+
+this one is logically identical to the front-side autonomous but the coordinates that the robot moves to are changed
+
+
 #### Full Diagram:
 ```mermaid
 graph LR
@@ -95,7 +107,7 @@ lftarm --> rdlb[move to backdrop left] & rdmb[move to backdrop middle] & rdrb[mo
 wggl -- park left selected --> mtplr[move to left parking place]
 wggl -- park right selected --> mtprr[move to right parking place]
 
-
+wggl[[wiggle to dislodge]]
 
 subgraph Red side
 
@@ -124,70 +136,23 @@ end
 end
 
 
-
-
-
-subgraph pre randomization
-Input([get pre randomization user input]) --> chek[\check input/]
-chek --> decide{what is the input}
-decide -- dpad up --> dup[set end position to middle]
-decide -- touchpad --> break
-dup --> chek
+subgraph wiggle
+wg([wiggle]) --> pw0[set all drive motor power to 1] -- wait 10ms --> pw1[set all drive motor power to -1] -- wait 10ms --> pw2[set all drive motor power to 0] --> kwg{keep wiggleing}
+kwg -- yes --> pw0
+kwg -- no --> endwg([break])
 end
-
-wggl[wiggle to dislodge]
-
 ```
 
-### Vision Back:
-this uses the white tape on the robot to line up with the inner edge of the left side of the tile on the side near the backdrop. 
-it follows the basic line 
-- check three locations for team prop
-- the spot with either the most red or most blue is selected as the location for the team prop
-- travels to the line and drops pixel
-- then depending on the identified side, parks at the backdrop
-#### Full Diagram:
-```mermaid
-graph LR
-Initialize([Initialize Robot]) --> a[Close Grabber]
-a --> b[Program Start]
-b --> c{check detection}
+during pre-randomization initialization the contolls are as follows:
 
-c --> d[set position estimate to red side]
-c --> e[set position estimate to blue side]
-
-subgraph Red side
-d -- Left --> RL
-d -- Middle --> RM
-d -- Right -->RR
-
-RL[pixel coordinate] --> rl2[back coordinate]
-
-RM[pixel coordinate] --> rm2[back coordinate]
-
-RR[pixel coordinate] --> rr2[back coordinate]
-
-rr2 & rl2 & rm2 --> f[position at backdrop]
-end
-
-
-
-subgraph Blue side
-
-e -- Left --> BL
-e -- Middle --> BM
-e -- Right --> BR
-
-BL[pixel coordinate] --> bl3[back coordinate]
-
-BM[pixel coordinate] --> bm3[back coordinate]
-
-BR[pixel coordinate] --> br3[back coordinate]
-
-br3 & bl3 & bm3 --> fb[position at backdrop]
-end
-
-```
+- DPad Up: set park middle
+- DPad Left: set park left
+- DPad Right: set park right
+- Square: no wait
+- Triangle: 3s wait
+- Circle: 5s wait
+- - Cross: max wait
+- Touchpad: accept
 
 
 In autonomous we discovered that there is one spot where the pixel can reliably be placed from a height and not bounce out of its intended position
