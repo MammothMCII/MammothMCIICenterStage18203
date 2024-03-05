@@ -1,23 +1,14 @@
 package org.firstinspires.ftc.teamcode;
 
-import android.util.Size;
 
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.apache.commons.math3.stat.descriptive.rank.Max;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.vision.VisionPortal;
-//import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-//import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
@@ -30,34 +21,10 @@ import org.openftc.easyopencv.OpenCvInternalCamera;
 import org.openftc.easyopencv.OpenCvPipeline;
 import org.opencv.core.Point;
 
-import java.util.Random;
-
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.util.ElapsedTime;
-
-import org.opencv.core.Core;
-import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint;
-import org.opencv.core.MatOfPoint2f;
-
-import org.opencv.core.Rect;
-import org.opencv.core.Scalar;
-import org.opencv.imgproc.Imgproc;
-import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraRotation;
-import org.openftc.easyopencv.OpenCvInternalCamera;
-import org.openftc.easyopencv.OpenCvPipeline;
-
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
-import org.firstinspires.ftc.teamcode.drive.AutonomousConstants;
-import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,12 +57,12 @@ public class VisionTest extends LinearOpMode {
     private static float rectHeight = .6f/8f;
     private static float rectWidth = 1.5f/8f;
 
-    private static float offsetX = 0f/8f;//changing this moves the three rects and the three circles left or right, range : (-2, 2) not inclusive
-    private static float offsetY = 0f/8f;//changing this moves the three rects and circles up or down, range: (-4, 4) not inclusive
+    private static final float offsetX = 0f/8f;//changing this moves the three rects and the three circles left or right, range : (-2, 2) not inclusive
+    private static final float offsetY = 0f/8f;//changing this moves the three rects and circles up or down, range: (-4, 4) not inclusive
 
-    private static float[] midPos = {4f/8f+offsetX, 4.1f/8f+offsetY};//0 = col, 1 = row
-    private static float[] leftPos = {0.5f/8f+offsetX, 4f/8f+offsetY};
-    private static float[] rightPos = {7.5f/8f+offsetX, 4f/8f+offsetY};
+    private static final float[] midPos = {4f/8f+offsetX, 4.1f/8f+offsetY};//0 = col, 1 = row
+    private static final float[] leftPos = {0.5f/8f+offsetX, 4f/8f+offsetY};
+    private static final float[] rightPos = {7.5f/8f+offsetX, 4f/8f+offsetY};
     //moves all rectangles right or left by amount. units are in ratio to monitor
 
     private final int rows = 1280;
@@ -115,10 +82,6 @@ public class VisionTest extends LinearOpMode {
     private DcMotor toprightmotor;
     private DcMotor bottomrightmotor;
 
-
-    private static final boolean USE_WEBCAM = true;
-    private AprilTagProcessor aprilTag;
-    private VisionPortal visionPortal;
 
     enum pos{
         left,
@@ -151,7 +114,6 @@ public class VisionTest extends LinearOpMode {
 
 
         phoneCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
-        //initAprilTag();
         //visionPortal.close();
         phoneCam.openCameraDevice();//open camera
 
@@ -311,63 +273,57 @@ public class VisionTest extends LinearOpMode {
         String tmax = "max";
 
         //telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));   #ref
-        while(true){
+        // this is the park and wait selection
+        do {
             telemetry.addLine(String.format("░░░░░■%s░┌---------┐░░░▲:%s░░░░░", middle, three));
             telemetry.addLine(String.format("░%s■=╩=■%s|  accept |░■:%s░░O:%s░", left, right, no, five));
             telemetry.addLine(String.format("░░░░░░░░░░░└---------┘░░░░X:%s░░", tmax));
             telemetry.addLine("DO NOT HIT START");
 
             telemetry.update();
-            if (gamepad1.x){
+
+            if (gamepad1.x) {
                 wait_time = 0;
                 three = "3";
-                no = "n\u0332o\u0332";
+                no = "n̲o̲";
                 five = "5";
                 tmax = "max";
-            }
-            else if (gamepad1.y){
+            } else if (gamepad1.y) {
                 wait_time = 3;
                 three = "3\u0332";
                 no = "no";
                 five = "5";
                 tmax = "max";
-            }
-            else if (gamepad1.a){
+            } else if (gamepad1.a) {
                 wait_time = 7;
                 three = "3";
                 no = "no";
                 five = "5";
-                tmax = "m\u0332a\u0332x\u0332";
-            }
-            else if (gamepad1.b){
+                tmax = "m̲a̲x̲";
+            } else if (gamepad1.b) {
                 wait_time = 5;
                 three = "3";
                 no = "no";
                 five = "5\u0332";
                 tmax = "max";
             }
-            if (gamepad1.dpad_left){
+            if (gamepad1.dpad_left) {
                 end_pos = 0;
                 middle = "Middle";
-                left = "L\u0332e\u0332f\u0332t\u0332";
+                left = "L̲e̲f̲t̲";
                 right = "Right";
-            }
-            else if (gamepad1.dpad_up){
+            } else if (gamepad1.dpad_up) {
                 end_pos = 2;
-                middle = "M\u0332i\u0332d\u0332d\u0332l\u0332e\u0332";
+                middle = "M̲i̲d̲d̲l̲e̲";
                 left = "Left";
                 right = "Right";
-            }
-            else if (gamepad1.dpad_right){
+            } else if (gamepad1.dpad_right) {
                 end_pos = 1;
                 middle = "Middle";
                 left = "Left";
-                right = "R\u0332i\u0332g\u0332h\u0332t\u0332";
+                right = "R̲i̲g̲h̲t̲";
             }
-            if (gamepad1.touchpad){
-                break;
-            }
-        }
+        } while (!gamepad1.touchpad);
 
 
 
@@ -416,7 +372,7 @@ public class VisionTest extends LinearOpMode {
                         dropPixel();
                         drive.followTrajectory(Blue_to_wait);
                     }
-                    else if (state == pos.middle) {
+                    else { //middle
                         drive.followTrajectory(BlueM_To_Tape);
                         dropPixel();
                         drive.followTrajectory(Blue_to_wait);
@@ -435,7 +391,7 @@ public class VisionTest extends LinearOpMode {
                     else if (state == pos.right) {
                         drive.followTrajectory(Place_On_board_BlueR);
                     }
-                    else if (state == pos.middle) {
+                    else {
                         drive.followTrajectory(Place_On_board_BlueM);
                     }
 
@@ -444,12 +400,9 @@ public class VisionTest extends LinearOpMode {
                     wait_stop.reset();
                     sleep(10);
 
-                    while (true){
+                    do {
                         wiggle();
-                        if (wait_stop.seconds() > 1){
-                            break;
-                        }
-                    }
+                    } while (!(wait_stop.seconds() > 1));
 
                     sleep(50);
                     if (end_pos == 0) {
@@ -487,7 +440,7 @@ public class VisionTest extends LinearOpMode {
                         dropPixel();
                         drive.followTrajectory(Red_to_waitR);
                     }
-                    else if (state == pos.middle) {
+                    else {
                         drive.followTrajectory(RedM_To_Tape);
                         dropPixel();
                         drive.followTrajectory(Red_to_wait);
@@ -506,7 +459,7 @@ public class VisionTest extends LinearOpMode {
                     else if (state == pos.right) {
                         drive.followTrajectory(Place_On_board_RedR);
                     }
-                    else if (state == pos.middle) {
+                    else {
                         drive.followTrajectory(Place_On_board_RedM);
                     }
 
@@ -515,12 +468,9 @@ public class VisionTest extends LinearOpMode {
                     wait_stop.reset();
                     sleep(10);
 
-                    while (true){
+                    do {
                         wiggle();
-                        if (wait_stop.seconds() > 1){
-                            break;
-                        }
-                    }
+                    } while (!(wait_stop.seconds() > 1));
 
                     sleep(50);
                     if (end_pos == 0) {
@@ -712,37 +662,6 @@ public class VisionTest extends LinearOpMode {
             }
         }
     }
-
-    private void initAprilTag() { // the only reason I open april tag here is because theen I can garuntee that it will be closed
-
-        // Create the AprilTag processor.
-        aprilTag = new AprilTagProcessor.Builder()
-
-
-                .setLensIntrinsics(1430 , 1430 , 480, 620)
-
-                .build();
-
-        VisionPortal.Builder builder = new VisionPortal.Builder();
-
-        // Set the camera (webcam vs. built-in RC phone camera).
-        if (USE_WEBCAM) {
-            builder.setCamera(hardwareMap.get(WebcamName.class, "FrontCamera"));
-        } else {
-            builder.setCamera(BuiltinCameraDirection.BACK);
-        }
-
-        // Choose a camera resolution. Not all cameras support all resolutions.
-        builder.setCameraResolution(new Size(1280, 720));
-
-
-        // Set and enable the processor.
-        builder.addProcessor(aprilTag);
-
-        // Build the Vision Portal, using the above settings.
-        visionPortal = builder.build();
-
-    }   // end method initAprilTag()
 
     public void wiggle() {
         int frequency = 15;
