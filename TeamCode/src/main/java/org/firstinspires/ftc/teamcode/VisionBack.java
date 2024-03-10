@@ -1,16 +1,15 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.acmerobotics.roadrunner.geometry.Vector2d;
-import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
+
+import com.acmerobotics.roadrunner.ParallelAction;
+import com.acmerobotics.roadrunner.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.apache.commons.math3.stat.descriptive.rank.Max;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
@@ -23,34 +22,25 @@ import org.openftc.easyopencv.OpenCvInternalCamera;
 import org.openftc.easyopencv.OpenCvPipeline;
 import org.opencv.core.Point;
 
-import java.util.Random;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.util.ElapsedTime;
+import androidx.annotation.NonNull;
 
-import org.opencv.core.Core;
-import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint;
-import org.opencv.core.MatOfPoint2f;
+// RR-specific imports
+import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.Vector2d;
+import com.acmerobotics.roadrunner.ftc.Actions;
 
-import org.opencv.core.Rect;
-import org.opencv.core.Scalar;
-import org.opencv.imgproc.Imgproc;
-import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraRotation;
-import org.openftc.easyopencv.OpenCvInternalCamera;
-import org.openftc.easyopencv.OpenCvPipeline;
-
-import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
+// Non-RR imports
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-
-import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
-import org.firstinspires.ftc.teamcode.drive.AutonomousConstants;
-import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -147,70 +137,75 @@ public class VisionBack extends LinearOpMode {
         arm_tilt = hardwareMap.get(DcMotor.class, "arm_tilt");
 
         //roadrunner initialization
-        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
+
 
         Pose2d startPoseRed = new Pose2d(9, -60, Math.toRadians(90));
 
         Pose2d startPoseBlue = new Pose2d(17, 60, Math.toRadians(-90));
 
+        MecanumDrive drive = new MecanumDrive(hardwareMap, startPoseRed);
+
 
         //build trajectories --------------------------------------------------------
 
         // red to tape
-        Trajectory RedL_To_Tape = drive.trajectoryBuilder(startPoseRed)
+        Action RedL_To_Tape = drive.actionBuilder(startPoseRed)
                 .splineToConstantHeading(new Vector2d(0, -31), Math.toRadians(180))
                 .build();
 
-        Trajectory RedM_To_Tape = drive.trajectoryBuilder(startPoseRed)
-                .lineToConstantHeading(new Vector2d(12, -29))
+        Action RedM_To_Tape = drive.actionBuilder(startPoseRed)
+                .lineToXConstantHeading(12)
+                .lineToYConstantHeading(-29)
                 .build();
 
-        Trajectory RedR_To_Tape = drive.trajectoryBuilder(startPoseRed)
+        Action RedR_To_Tape = drive.actionBuilder(startPoseRed)
                 .splineToConstantHeading(new Vector2d(25, -34), Math.toRadians(0))
                 .build();
 
 
         // red to wait pos
-        Trajectory Red_to_waitR = drive.trajectoryBuilder(RedR_To_Tape.end())
+        Action Red_to_waitR = drive.actionBuilder(drive.pose)
                 //.splineToSplineHeading(new Pose2d(30, -45, Math.toRadians(0)), Math.toRadians(0))
-                .lineToLinearHeading(new Pose2d(30, -45, Math.toRadians(0)))
+                .lineToXLinearHeading(30, Math.toRadians(0))
+                .lineToYLinearHeading(-45, Math.toRadians(0))
                 //.splineToSplineHeading(new Pose2d(58, -14, Math.toRadians(0)), Math.toRadians(0))
                 .build();
 
-        Trajectory Red_to_wait = drive.trajectoryBuilder(RedL_To_Tape.end())
-                .lineToConstantHeading(new Vector2d(1, -32.5))
+        Action Red_to_wait = drive.actionBuilder(drive.pose)
+                .lineToXConstantHeading(1)
+                .lineToYConstantHeading( -32.5)
                 .splineToConstantHeading(new Vector2d(20, -33), Math.toRadians(0))
                 //.splineToSplineHeading(new Pose2d(58, -13, Math.toRadians(0)), Math.toRadians(0))
                 .build();
 
         //red return
-        Trajectory Red_Return = drive.trajectoryBuilder(Red_to_wait.end())
+        Action Red_Return = drive.actionBuilder(drive.pose)
                 //.lineToConstantHeading(new Vector2d(30, -9))
                 .splineToLinearHeading(new Pose2d(40, -25, Math.toRadians(0)), 0)
                 .build();
 
         //red board
-        Trajectory Place_On_board_RedL = drive.trajectoryBuilder(Red_Return.end())
-                .lineToConstantHeading(new Vector2d(56, -27))
+        Action Place_On_board_RedL = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(56, -27), 0)
                 .build();
 
-        Trajectory Place_On_board_RedM = drive.trajectoryBuilder(Red_Return.end())
-                .lineToConstantHeading(new Vector2d(56, -35))
+        Action Place_On_board_RedM = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(56, -35), 0)
                 .build();
 
-        Trajectory Place_On_board_RedR = drive.trajectoryBuilder(Red_Return.end())
-                .lineToConstantHeading(new Vector2d(56, -42))
+        Action Place_On_board_RedR = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(56, -42), 0)
                 .build();
 
 
         //park
-        Trajectory Red_Place_returnL = drive.trajectoryBuilder((Place_On_board_RedM.end()))
-                .lineToConstantHeading(new Vector2d(35, -10))
+        Action Red_Place_returnL = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(35, -10), 0)
                 .splineToConstantHeading(new Vector2d(53, -7), 0)
                 .build();
 
-        Trajectory Red_Place_returnR = drive.trajectoryBuilder((Place_On_board_RedM.end()))
-                .lineToConstantHeading(new Vector2d(35, -40))
+        Action Red_Place_returnR = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(35, -40), 0)
                 .splineToConstantHeading(new Vector2d(53, -60), 0)
                 .build();
 
@@ -218,36 +213,36 @@ public class VisionBack extends LinearOpMode {
 
         ///--------------------------------------------------------------------------------------------------
         // Blue R to tape
-        Trajectory BlueR_To_Tape = drive.trajectoryBuilder(startPoseBlue)
+        Action BlueR_To_Tape = drive.actionBuilder(startPoseBlue)
                 .splineToConstantHeading(new Vector2d(1, 32), Math.toRadians(180))
                 .build();
 
-        Trajectory BlueL_To_Tape = drive.trajectoryBuilder(startPoseBlue)
+        Action BlueL_To_Tape = drive.actionBuilder(startPoseBlue)
                 .splineToConstantHeading(new Vector2d(26, 33), Math.toRadians(0))
                 .build();
 
-        Trajectory BlueM_To_Tape = drive.trajectoryBuilder(startPoseBlue)
-                .lineToConstantHeading(new Vector2d(12, 28))
+        Action BlueM_To_Tape = drive.actionBuilder(startPoseBlue)
+                .splineToConstantHeading(new Vector2d(12, 28), 0)
                 .build();
 
 
 
         // Blue to wait pos
-        Trajectory Blue_to_waitL = drive.trajectoryBuilder(BlueL_To_Tape.end())
+        Action Blue_to_waitL = drive.actionBuilder(drive.pose)
                 //.lineToConstantHeading(new Vector2d(30, 45))
                 //.splineToSplineHeading(new Pose2d(58, 13, Math.toRadians(0)), Math.toRadians(0))
-                .lineToLinearHeading(new Pose2d(30, 45, Math.toRadians(0)))
+                .splineToLinearHeading(new Pose2d(30, 45, Math.toRadians(0)), 0)
                 .build();
 
-        Trajectory Blue_to_wait = drive.trajectoryBuilder(BlueR_To_Tape.end())
-                .lineToConstantHeading(new Vector2d(1, 32.5))
+        Action Blue_to_wait = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(1, 32.5), 0)
                 .splineToConstantHeading(new Vector2d(20, 32.5), Math.toRadians(0))
 
                 //.splineToSplineHeading(new Pose2d(58, 13, Math.toRadians(0)), Math.toRadians(0))
                 .build();
 
         //Blue return
-        Trajectory Blue_Return = drive.trajectoryBuilder(Blue_to_wait.end())
+        Action Blue_Return = drive.actionBuilder(drive.pose)
                 //.lineToConstantHeading(new Vector2d(30, 9))
                 //.splineToConstantHeading(new Vector2d(40, 20), 0)
 
@@ -256,27 +251,27 @@ public class VisionBack extends LinearOpMode {
 
 
         //Blue board
-        Trajectory Place_On_board_BlueR = drive.trajectoryBuilder(Blue_Return.end())
-                .lineToConstantHeading(new Vector2d(55, 24.5))
+        Action Place_On_board_BlueR = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(55, 24.5), 0)
                 .build();
 
-        Trajectory Place_On_board_BlueM = drive.trajectoryBuilder(Blue_Return.end())
-                .lineToConstantHeading(new Vector2d(55, 33))
+        Action Place_On_board_BlueM = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(55, 33), 0)
                 .build();
 
-        Trajectory Place_On_board_BlueL = drive.trajectoryBuilder(Blue_Return.end())
-                .lineToConstantHeading(new Vector2d(55, 38))
+        Action Place_On_board_BlueL = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(55, 38), 0)
                 .build();
 
 
         //park
-        Trajectory Blue_Place_returnL = drive.trajectoryBuilder((Place_On_board_BlueM.end()))
-                .lineToConstantHeading(new Vector2d(39, 40))
+        Action Blue_Place_returnL = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(39, 40), 0)
                 .splineToConstantHeading(new Vector2d(53, 60), 0)
                 .build();
 
-        Trajectory Blue_Place_returnR = drive.trajectoryBuilder((Place_On_board_BlueM.end()))
-                .lineToConstantHeading(new Vector2d(35, 10))
+        Action Blue_Place_returnR = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(35, 10), 0)
                 .splineToConstantHeading(new Vector2d(53, 7), 0)
                 .build();
 
@@ -378,7 +373,6 @@ public class VisionBack extends LinearOpMode {
 
                 //blue side
                 if (valLeft == max || valMid == max || valRight == max) {
-                    drive.setPoseEstimate(startPoseBlue);
                     delay_wait(wait_time);
                     VisionTest.pos state = VisionTest.pos.left;
                     if (valMid == max){
@@ -391,36 +385,36 @@ public class VisionBack extends LinearOpMode {
 
 
                     if (state == VisionTest.pos.left) {
-                        drive.followTrajectory(BlueL_To_Tape);
+                        Actions.runBlocking(BlueL_To_Tape);
                         dropPixel();
-                        drive.followTrajectory(Blue_to_waitL);
+                        Actions.runBlocking(Blue_to_waitL);
                     }
                     else if (state == VisionTest.pos.right) {
-                        drive.followTrajectory(BlueR_To_Tape);
+                        Actions.runBlocking(BlueR_To_Tape);
                         dropPixel();
-                        drive.followTrajectory(Blue_to_wait);
+                        Actions.runBlocking(Blue_to_wait);
                     }
                     else if (state == VisionTest.pos.middle) {
-                        drive.followTrajectory(BlueM_To_Tape);
+                        Actions.runBlocking(BlueM_To_Tape);
                         dropPixel();
-                        drive.followTrajectory(Blue_to_wait);
+                        Actions.runBlocking(Blue_to_wait);
                     }
 
 
-                    drive.followTrajectory(Blue_Return);
+                    Actions.runBlocking(Blue_Return);
                     arm_slide.setPower(1);
                     sleep(400);
                     arm_slide.setPower(0);
 
 
                     if (state == VisionTest.pos.left) {
-                        drive.followTrajectory(Place_On_board_BlueL);
+                        Actions.runBlocking(Place_On_board_BlueL);
                     }
                     else if (state == VisionTest.pos.right) {
-                        drive.followTrajectory(Place_On_board_BlueR);
+                        Actions.runBlocking(Place_On_board_BlueR);
                     }
                     else if (state == VisionTest.pos.middle) {
-                        drive.followTrajectory(Place_On_board_BlueM);
+                        Actions.runBlocking(Place_On_board_BlueM);
                     }
 
                     sleep(10);
@@ -437,10 +431,10 @@ public class VisionBack extends LinearOpMode {
 
                     sleep(50);
                     if (end_pos == 0) {
-                        drive.followTrajectory(Blue_Place_returnL);
+                        Actions.runBlocking(Blue_Place_returnL);
                     }
                     else if (end_pos == 1) {
-                        drive.followTrajectory(Blue_Place_returnR);
+                        Actions.runBlocking(Blue_Place_returnR);
                     }
                     sleep(12345678);
                 }
@@ -460,40 +454,39 @@ public class VisionBack extends LinearOpMode {
                         state = VisionTest.pos.right;
                     }
 
-                    drive.setPoseEstimate(startPoseRed);
                     sleep(10);
 
                     if (state == VisionTest.pos.left) {
-                        drive.followTrajectory(RedL_To_Tape);
+                        Actions.runBlocking(RedL_To_Tape);
                         dropPixel();
-                        drive.followTrajectory(Red_to_wait);
+                        Actions.runBlocking(Red_to_wait);
                     }
                     else if (state == VisionTest.pos.right) {
-                        drive.followTrajectory(RedR_To_Tape);
+                        Actions.runBlocking(RedR_To_Tape);
                         dropPixel();
-                        drive.followTrajectory(Red_to_waitR);
+                        Actions.runBlocking(Red_to_waitR);
                     }
                     else if (state == VisionTest.pos.middle) {
-                        drive.followTrajectory(RedM_To_Tape);
+                        Actions.runBlocking(RedM_To_Tape);
                         dropPixel();
-                        drive.followTrajectory(Red_to_wait);
+                        Actions.runBlocking(Red_to_wait);
                     }
 
 
-                    drive.followTrajectory(Red_Return);
+                    Actions.runBlocking(Red_Return);
                     arm_slide.setPower(1);
                     sleep(400);
                     arm_slide.setPower(0);
 
 
                     if (state == VisionTest.pos.left) {
-                        drive.followTrajectory(Place_On_board_RedL);
+                        Actions.runBlocking(Place_On_board_RedL);
                     }
                     else if (state == VisionTest.pos.right) {
-                        drive.followTrajectory(Place_On_board_RedR);
+                        Actions.runBlocking(Place_On_board_RedR);
                     }
                     else if (state == VisionTest.pos.middle) {
-                        drive.followTrajectory(Place_On_board_RedM);
+                        Actions.runBlocking(Place_On_board_RedM);
                     }
 
                     sleep(10);
@@ -510,10 +503,10 @@ public class VisionBack extends LinearOpMode {
 
                     sleep(50);
                     if (end_pos == 0) {
-                        drive.followTrajectory(Red_Place_returnL);
+                        Actions.runBlocking(Red_Place_returnL);
                     }
                     else if (end_pos == 1) {
-                        drive.followTrajectory(Red_Place_returnR);
+                        Actions.runBlocking(Red_Place_returnR);
                     }
                     sleep(1233456);
                 }

@@ -1,7 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
 
-import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.acmerobotics.roadrunner.ParallelAction;
+import com.acmerobotics.roadrunner.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -21,10 +22,25 @@ import org.openftc.easyopencv.OpenCvInternalCamera;
 import org.openftc.easyopencv.OpenCvPipeline;
 import org.opencv.core.Point;
 
-import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
 
-import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
+import androidx.annotation.NonNull;
+
+// RR-specific imports
+import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.Vector2d;
+import com.acmerobotics.roadrunner.ftc.Actions;
+
+// Non-RR imports
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -125,7 +141,7 @@ public class VisionTest extends LinearOpMode {
         arm_tilt = hardwareMap.get(DcMotor.class, "arm_tilt");
 
         //roadrunner initialization
-        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
+        MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(11.8, 61.7, Math.toRadians(90)));
 
         Pose2d startPoseRed = new Pose2d(-39, -60, Math.toRadians(90));
 
@@ -135,62 +151,64 @@ public class VisionTest extends LinearOpMode {
         //build trajectories --------------------------------------------------------
 
         // red to tape
-        Trajectory RedL_To_Tape = drive.trajectoryBuilder(startPoseRed)
-                .lineToConstantHeading(new Vector2d(-48, -38))
+        ParallelAction RedL_To_Tape = (ParallelAction) drive.actionBuilder(startPoseRed)
+                .lineToXConstantHeading(-48)
+                .lineToYConstantHeading(-38)
                 .build();
 
-        Trajectory RedM_To_Tape = drive.trajectoryBuilder(startPoseRed)
-                .lineToConstantHeading(new Vector2d(-43, -28))
+        ParallelAction RedM_To_Tape = (ParallelAction) drive.actionBuilder(startPoseRed)
+                .lineToXConstantHeading(-43)
+                .lineToYConstantHeading(-28)
                 .build();
 
-        Trajectory RedR_To_Tape = drive.trajectoryBuilder(startPoseRed)
+        Action RedR_To_Tape = drive.actionBuilder(startPoseRed)
                 .splineToConstantHeading(new Vector2d(-23, -32), Math.toRadians(0))
                 .build();
 
 
         // red to wait pos
-        Trajectory Red_to_waitR = drive.trajectoryBuilder(RedR_To_Tape.end())
-                .lineToConstantHeading(new Vector2d(-26, -33))
+        Action Red_to_waitR = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(-26, -33), Math.toRadians(0))
                 .splineToConstantHeading(new Vector2d(-60, -33), Math.toRadians(90))
                 .splineToConstantHeading(new Vector2d(-60, -24), Math.toRadians(90))
                 .splineToSplineHeading(new Pose2d(-50, -9, Math.toRadians(0)), Math.toRadians(0))
                 .build();
 
-        Trajectory Red_to_wait = drive.trajectoryBuilder(RedL_To_Tape.end())
-                .lineToConstantHeading(new Vector2d(-48, -50))
+        Action Red_to_wait = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(-48, -50), Math.toRadians(0))
                 .splineToConstantHeading(new Vector2d(-60, -50), Math.toRadians(90))
                 .splineToConstantHeading(new Vector2d(-60, -24), Math.toRadians(90))
                 .splineToSplineHeading(new Pose2d(-50, -9, Math.toRadians(0)), Math.toRadians(0))
                 .build();
 
         //red return
-        Trajectory Red_Return = drive.trajectoryBuilder(Red_to_wait.end())
-                .lineToConstantHeading(new Vector2d(30, -9))
+        Action Red_Return = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(30, -9), 0)
                 .splineToConstantHeading(new Vector2d(40, -20), 0)
                 .build();
 
         //red board
-        Trajectory Place_On_board_RedL = drive.trajectoryBuilder(Red_Return.end())
-                .lineToConstantHeading(new Vector2d(55, -23))
+        Action Place_On_board_RedL = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(55, -23), 0)
                 .build();
 
-        Trajectory Place_On_board_RedM = drive.trajectoryBuilder(Red_Return.end())
-                .lineToConstantHeading(new Vector2d(55, -31))
+        Action Place_On_board_RedM = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(55, -31), 0)
                 .build();
 
-        Trajectory Place_On_board_RedR = drive.trajectoryBuilder(Red_Return.end())
-                .lineToConstantHeading(new Vector2d(55, -35))
+        Action Place_On_board_RedR = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(55, -35), 0)
                 .build();
 
 
         //park
-        Trajectory Red_Place_returnL = drive.trajectoryBuilder((Place_On_board_RedM.end()))
-                .lineToConstantHeading(new Vector2d(35, -10))
+        Action Red_Place_returnL = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(35, -10), 0)
                 .splineToConstantHeading(new Vector2d(53, -7), 0)
                 .build();
 
-        Trajectory Red_Place_returnR = drive.trajectoryBuilder((Place_On_board_RedM.end()))
-                .lineToConstantHeading(new Vector2d(35, -40))
+        Action Red_Place_returnR = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(35, -40), 0)
                 .splineToConstantHeading(new Vector2d(53, -60), 0)
                 .build();
 
@@ -198,64 +216,66 @@ public class VisionTest extends LinearOpMode {
 
         ///--------------------------------------------------------------------------------------------------
         // Blue R to tape
-        Trajectory BlueR_To_Tape = drive.trajectoryBuilder(startPoseBlue)
-                .lineToConstantHeading(new Vector2d(-48, 33))
+        ParallelAction BlueR_To_Tape = (ParallelAction) drive.actionBuilder(startPoseBlue)
+                .lineToXConstantHeading(-48)
+                .lineToYConstantHeading(33)
                 .build();
 
-        Trajectory BlueL_To_Tape = drive.trajectoryBuilder(startPoseBlue)
+        Action BlueL_To_Tape = drive.actionBuilder(startPoseBlue)
                 .splineToConstantHeading(new Vector2d(-22, 32), Math.toRadians(0))
                 .build();
 
-        Trajectory BlueM_To_Tape = drive.trajectoryBuilder(startPoseBlue)
-                .lineToConstantHeading(new Vector2d(-39, 29))
+        ParallelAction BlueM_To_Tape = (ParallelAction) drive.actionBuilder(startPoseBlue)
+                .lineToXConstantHeading(-39)
+                .lineToYConstantHeading(29)
                 .build();
 
 
 
         // Blue to wait pos
-        Trajectory Blue_to_waitL = drive.trajectoryBuilder(BlueL_To_Tape.end())
-                .lineToConstantHeading(new Vector2d(-26, 34))
+        Action Blue_to_waitL = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(-26, 34), 0)
                 .splineToConstantHeading(new Vector2d(-60, 34), Math.toRadians(-90))
                 .splineToConstantHeading(new Vector2d(-60, 24), Math.toRadians(-90))
                 .splineToSplineHeading(new Pose2d(-50, 9, Math.toRadians(0)), Math.toRadians(0))
                 .build();
 
-        Trajectory Blue_to_wait = drive.trajectoryBuilder(BlueR_To_Tape.end())
-                .lineToConstantHeading(new Vector2d(-48, 50))
+        Action Blue_to_wait = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(-48, 50), 0)
                 .splineToConstantHeading(new Vector2d(-60, 50), Math.toRadians(-90))
                 .splineToConstantHeading(new Vector2d(-60, 24), Math.toRadians(-90))
                 .splineToSplineHeading(new Pose2d(-50, 9, Math.toRadians(0)), Math.toRadians(0))
                 .build();
 
         //Blue return
-        Trajectory Blue_Return = drive.trajectoryBuilder(Blue_to_wait.end())
-                .lineToConstantHeading(new Vector2d(30, 9))
+        Action Blue_Return = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(30, 9), 0)
                 .splineToConstantHeading(new Vector2d(40, 20), 0)
                 .build();
 
 
         //Blue board
-        Trajectory Place_On_board_BlueR = drive.trajectoryBuilder(Blue_Return.end())
-                .lineToConstantHeading(new Vector2d(55, 19))
+        Action Place_On_board_BlueR = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(55, 19), 0)
                 .build();
 
-        Trajectory Place_On_board_BlueM = drive.trajectoryBuilder(Blue_Return.end())
-                .lineToConstantHeading(new Vector2d(55, 28))
+        Action Place_On_board_BlueM = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(55, 28), 0)
                 .build();
 
-        Trajectory Place_On_board_BlueL = drive.trajectoryBuilder(Blue_Return.end())
-                .lineToConstantHeading(new Vector2d(55, 35))
+        Action Place_On_board_BlueL = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(55, 35), 0)
                 .build();
 
 
         //park
-        Trajectory Blue_Place_returnL = drive.trajectoryBuilder((Place_On_board_BlueM.end()))
-                .lineToConstantHeading(new Vector2d(35, 40))
+        Action Blue_Place_returnL = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(35, 40), 0)
                 .splineToConstantHeading(new Vector2d(53, 60), 0)
                 .build();
 
-        Trajectory Blue_Place_returnR = drive.trajectoryBuilder((Place_On_board_BlueM.end()))
-                .lineToConstantHeading(new Vector2d(35, 10))
+        Action Blue_Place_returnR = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(35, 10), 0)
                 .splineToConstantHeading(new Vector2d(53, 7), 0)
                 .build();
 
@@ -351,7 +371,6 @@ public class VisionTest extends LinearOpMode {
 
                 //blue side
                 if (valLeft == max || valMid == max || valRight == max) {
-                    drive.setPoseEstimate(startPoseBlue);
                     pos state = pos.left;
                     if (valMid == max){
                         state = pos.middle;
@@ -363,36 +382,36 @@ public class VisionTest extends LinearOpMode {
 
 
                     if (state == pos.left) {
-                        drive.followTrajectory(BlueL_To_Tape);
+                        Actions.runBlocking(BlueL_To_Tape);
                         dropPixel();
-                        drive.followTrajectory(Blue_to_waitL);
+                        Actions.runBlocking(Blue_to_waitL);
                     }
                     else if (state == pos.right) {
-                        drive.followTrajectory(BlueR_To_Tape);
+                        Actions.runBlocking(BlueR_To_Tape);
                         dropPixel();
-                        drive.followTrajectory(Blue_to_wait);
+                        Actions.runBlocking(Blue_to_wait);
                     }
                     else { //middle
-                        drive.followTrajectory(BlueM_To_Tape);
+                        Actions.runBlocking(BlueM_To_Tape);
                         dropPixel();
-                        drive.followTrajectory(Blue_to_wait);
+                        Actions.runBlocking(Blue_to_wait);
                     }
 
                     delay_wait(wait_time);
-                    drive.followTrajectory(Blue_Return);
+                    Actions.runBlocking(Blue_Return);
                     arm_slide.setPower(1);
                     sleep(600);
                     arm_slide.setPower(0);
 
 
                     if (state == pos.left) {
-                        drive.followTrajectory(Place_On_board_BlueL);
+                        Actions.runBlocking(Place_On_board_BlueL);
                     }
                     else if (state == pos.right) {
-                        drive.followTrajectory(Place_On_board_BlueR);
+                        Actions.runBlocking(Place_On_board_BlueR);
                     }
                     else {
-                        drive.followTrajectory(Place_On_board_BlueM);
+                        Actions.runBlocking(Place_On_board_BlueM);
                     }
 
                     sleep(10);
@@ -406,10 +425,10 @@ public class VisionTest extends LinearOpMode {
 
                     sleep(50);
                     if (end_pos == 0) {
-                        drive.followTrajectory(Blue_Place_returnL);
+                        Actions.runBlocking(Blue_Place_returnL);
                     }
                     else if (end_pos == 1) {
-                        drive.followTrajectory(Blue_Place_returnR);
+                        Actions.runBlocking(Blue_Place_returnR);
                     }
                     sleep(12345678);
                 }
@@ -427,40 +446,39 @@ public class VisionTest extends LinearOpMode {
                         state = pos.right;
                     }
 
-                    drive.setPoseEstimate(startPoseRed);
                     sleep(10);
 
                     if (state == pos.left) {
-                        drive.followTrajectory(RedL_To_Tape);
+                        Actions.runBlocking(RedL_To_Tape);
                         dropPixel();
-                        drive.followTrajectory(Red_to_wait);
+                        Actions.runBlocking(Red_to_wait);
                     }
                     else if (state == pos.right) {
-                        drive.followTrajectory(RedR_To_Tape);
+                        Actions.runBlocking(RedR_To_Tape);
                         dropPixel();
-                        drive.followTrajectory(Red_to_waitR);
+                        Actions.runBlocking(Red_to_waitR);
                     }
                     else {
-                        drive.followTrajectory(RedM_To_Tape);
+                        Actions.runBlocking(RedM_To_Tape);
                         dropPixel();
-                        drive.followTrajectory(Red_to_wait);
+                        Actions.runBlocking(Red_to_wait);
                     }
 
                     delay_wait(wait_time);
-                    drive.followTrajectory(Red_Return);
+                    Actions.runBlocking(Red_Return);
                     arm_slide.setPower(1);
                     sleep(600);
                     arm_slide.setPower(0);
 
 
                     if (state == pos.left) {
-                        drive.followTrajectory(Place_On_board_RedL);
+                        Actions.runBlocking(Place_On_board_RedL);
                     }
                     else if (state == pos.right) {
-                        drive.followTrajectory(Place_On_board_RedR);
+                        Actions.runBlocking(Place_On_board_RedR);
                     }
                     else {
-                        drive.followTrajectory(Place_On_board_RedM);
+                        Actions.runBlocking(Place_On_board_RedM);
                     }
 
                     sleep(10);
@@ -474,10 +492,10 @@ public class VisionTest extends LinearOpMode {
 
                     sleep(50);
                     if (end_pos == 0) {
-                        drive.followTrajectory(Red_Place_returnL);
+                        Actions.runBlocking(Red_Place_returnL);
                     }
                     else if (end_pos == 1) {
-                        drive.followTrajectory(Red_Place_returnR);
+                        Actions.runBlocking(Red_Place_returnR);
                     }
                     sleep(1233456);
                 }

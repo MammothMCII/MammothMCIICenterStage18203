@@ -15,7 +15,6 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 import org.checkerframework.checker.units.qual.A;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -98,8 +97,6 @@ public class TeleopMain extends LinearOpMode {
         bottom_grip.setPosition(0);
         top_grip.setPosition(0.85);
 
-
-        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
 
         waitForStart();
         if (opModeIsActive()) {
