@@ -702,4 +702,69 @@ public class VisionTest extends LinearOpMode {
         toprightmotor.setPower(0);
 
     }
+    private void selectOptions() {
+        while (!isStarted() && !isStopRequested()){
+            String middle = "Middle";
+            String left = "Left";
+            String right = "Right";
+            String three = "3";
+            String no = "no";
+            String five = "5";
+            String tmax = "max";
+
+            //telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));   #ref
+            // this is the park and wait selection
+            do {
+                telemetry.addLine(String.format("░░░░░■%s░┌---------┐░░░▲:%s░░░░░", middle, three));
+                telemetry.addLine(String.format("░%s■=╩=■%s|  accept |░■:%s░░O:%s░", left, right, no, five));
+                telemetry.addLine(String.format("░░░░░░░░░░░└---------┘░░░░X:%s░░", tmax));
+                telemetry.addLine("DO NOT HIT START");
+
+                telemetry.update();
+
+                if (gamepad1.x) {
+                    wait_time = 0;
+                    three = "3";
+                    no = "n̲o̲";
+                    five = "5";
+                    tmax = "max";
+                } else if (gamepad1.y) {
+                    wait_time = 3;
+                    three = "3\u0332";
+                    no = "no";
+                    five = "5";
+                    tmax = "max";
+                } else if (gamepad1.a) {
+                    wait_time = 7;
+                    three = "3";
+                    no = "no";
+                    five = "5";
+                    tmax = "m̲a̲x̲";
+                } else if (gamepad1.b) {
+                    wait_time = 5;
+                    three = "3";
+                    no = "no";
+                    five = "5\u0332";
+                    tmax = "max";
+                }
+                if (gamepad1.dpad_left) {
+                    end_pos = 0;
+                    middle = "Middle";
+                    left = "L̲e̲f̲t̲";
+                    right = "Right";
+                } else if (gamepad1.dpad_up) {
+                    end_pos = 2;
+                    middle = "M̲i̲d̲d̲l̲e̲";
+                    left = "Left";
+                    right = "Right";
+                } else if (gamepad1.dpad_right) {
+                    end_pos = 1;
+                    middle = "Middle";
+                    left = "Left";
+                    right = "R̲i̲g̲h̲t̲";
+                }
+            } while (!gamepad1.touchpad);
+
+        }
+    }
 }
