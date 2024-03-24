@@ -137,13 +137,13 @@ public class TeleopMain extends LinearOpMode {
                 }
 
                 if (armsafetybutton.isPressed()) {
-                    arm_slide.setPower(Math.min(Math.max(-arm_power, 0), 1));
+                    arm_slide.setPower(Math.min(Math.max(arm_power, -1), 0));
                 }
                 else if(armlimitbutton.isPressed()) {
-                    arm_slide.setPower((Math.min(Math.max(-arm_power, -1), 0)));
+                    arm_slide.setPower((Math.min(Math.max(arm_power, 0), -1)));
                 }
                 else {
-                    arm_slide.setPower(-arm_power);
+                    arm_slide.setPower(arm_power);
                 }
 
 

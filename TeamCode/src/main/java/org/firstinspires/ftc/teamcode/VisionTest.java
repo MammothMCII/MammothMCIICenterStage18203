@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
 
+import static androidx.core.math.MathUtils.clamp;
+
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -66,6 +68,10 @@ public class VisionTest extends LinearOpMode {
 
     private static int wait_time = 0;
 
+    private static int side = 0;
+
+    private static int color = 0;
+
     private static int end_pos = 0; //0 = left,   1 = right,   2 = middle
 
 
@@ -124,6 +130,8 @@ public class VisionTest extends LinearOpMode {
         arm_tilt = hardwareMap.get(DcMotor.class, "arm_tilt");
         arm_slide = hardwareMap.get(DcMotor.class, "arm_slide");
 
+
+        arm_slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         //initAprilTag();
 
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
@@ -284,66 +292,9 @@ public class VisionTest extends LinearOpMode {
         bottom_grip.setPosition(0);
         top_grip.setPosition(0.8);
 
-        String middle = "Middle";
-        String left = "Left";
-        String right = "Right";
-        String three = "3";
-        String no = "no";
-        String five = "5";
-        String tmax = "max";
-
         //telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));   #ref
         // this is the park and wait selection
-        do {
-            telemetry.addLine(String.format("░░░░░■%s░┌---------┐░░░▲:%s░░░░░", middle, three));
-            telemetry.addLine(String.format("░%s■=╩=■%s|  accept |░■:%s░░O:%s░", left, right, no, five));
-            telemetry.addLine(String.format("░░░░░░░░░░░└---------┘░░░░X:%s░░", tmax));
-            telemetry.addLine("DO NOT HIT START");
-
-            telemetry.update();
-
-            if (gamepad1.x) {
-                wait_time = 0;
-                three = "3";
-                no = "n̲o̲";
-                five = "5";
-                tmax = "max";
-            } else if (gamepad1.y) {
-                wait_time = 3;
-                three = "3\u0332";
-                no = "no";
-                five = "5";
-                tmax = "max";
-            } else if (gamepad1.a) {
-                wait_time = 7;
-                three = "3";
-                no = "no";
-                five = "5";
-                tmax = "m̲a̲x̲";
-            } else if (gamepad1.b) {
-                wait_time = 5;
-                three = "3";
-                no = "no";
-                five = "5\u0332";
-                tmax = "max";
-            }
-            if (gamepad1.dpad_left) {
-                end_pos = 0;
-                middle = "Middle";
-                left = "L̲e̲f̲t̲";
-                right = "Right";
-            } else if (gamepad1.dpad_up) {
-                end_pos = 2;
-                middle = "M̲i̲d̲d̲l̲e̲";
-                left = "Left";
-                right = "Right";
-            } else if (gamepad1.dpad_right) {
-                end_pos = 1;
-                middle = "Middle";
-                left = "Left";
-                right = "R̲i̲g̲h̲t̲";
-            }
-        } while (!gamepad1.touchpad);
+        selectOptions();
 
 
 
@@ -712,59 +663,99 @@ public class VisionTest extends LinearOpMode {
             String five = "5";
             String tmax = "max";
 
-            //telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));   #ref
-            // this is the park and wait selection
-            do {
-                telemetry.addLine(String.format("░░░░░■%s░┌---------┐░░░▲:%s░░░░░", middle, three));
-                telemetry.addLine(String.format("░%s■=╩=■%s|  accept |░■:%s░░O:%s░", left, right, no, five));
-                telemetry.addLine(String.format("░░░░░░░░░░░└---------┘░░░░X:%s░░", tmax));
-                telemetry.addLine("DO NOT HIT START");
+            int progress = 0;
+            int screen_count = 2;
+            boolean held = false;
 
-                telemetry.update();
+            while (progress != screen_count) {
+                //telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));   #ref
+                // this is the park and wait selection
+                if (progress == 0) {
+                    telemetry.addLine(String.format("░░░░░■%s░┌---------┐░░░▲:%s░░░░░", middle, three));
+                    telemetry.addLine(String.format("░%s■=╩=■%s| B    F  |░■:%s░░O:%s░", left, right, no, five));
+                    telemetry.addLine(String.format("░░░░░░░░░░░└---------┘░░░░X:%s░░", tmax));
+                    telemetry.addLine("DO NOT HIT START");
 
-                if (gamepad1.x) {
-                    wait_time = 0;
-                    three = "3";
-                    no = "n̲o̲";
-                    five = "5";
-                    tmax = "max";
-                } else if (gamepad1.y) {
-                    wait_time = 3;
-                    three = "3\u0332";
-                    no = "no";
-                    five = "5";
-                    tmax = "max";
-                } else if (gamepad1.a) {
-                    wait_time = 7;
-                    three = "3";
-                    no = "no";
-                    five = "5";
-                    tmax = "m̲a̲x̲";
-                } else if (gamepad1.b) {
-                    wait_time = 5;
-                    three = "3";
-                    no = "no";
-                    five = "5\u0332";
-                    tmax = "max";
+                    telemetry.update();
+
+                    if (gamepad1.x) {
+                        wait_time = 0;
+                        three = "3";
+                        no = "n̲o̲";
+                        five = "5";
+                        tmax = "max";
+                    } else if (gamepad1.y) {
+                        wait_time = 3;
+                        three = "3\u0332";
+                        no = "no";
+                        five = "5";
+                        tmax = "max";
+                    } else if (gamepad1.a) {
+                        wait_time = 7;
+                        three = "3";
+                        no = "no";
+                        five = "5";
+                        tmax = "m̲a̲x̲";
+                    } else if (gamepad1.b) {
+                        wait_time = 5;
+                        three = "3";
+                        no = "no";
+                        five = "5\u0332";
+                        tmax = "max";
+                    }
+                    if (gamepad1.dpad_left) {
+                        end_pos = 0;
+                        middle = "Middle";
+                        left = "L̲e̲f̲t̲";
+                        right = "Right";
+                    } else if (gamepad1.dpad_up) {
+                        end_pos = 2;
+                        middle = "M̲i̲d̲d̲l̲e̲";
+                        left = "Left";
+                        right = "Right";
+                    } else if (gamepad1.dpad_right) {
+                        end_pos = 1;
+                        middle = "Middle";
+                        left = "Left";
+                        right = "R̲i̲g̲h̲t̲";
+                    }
                 }
-                if (gamepad1.dpad_left) {
-                    end_pos = 0;
-                    middle = "Middle";
-                    left = "L̲e̲f̲t̲";
-                    right = "Right";
-                } else if (gamepad1.dpad_up) {
-                    end_pos = 2;
-                    middle = "M̲i̲d̲d̲l̲e̲";
-                    left = "Left";
-                    right = "Right";
-                } else if (gamepad1.dpad_right) {
-                    end_pos = 1;
-                    middle = "Middle";
-                    left = "Left";
-                    right = "R̲i̲g̲h̲t̲";
-                }
-            } while (!gamepad1.touchpad);
+                if (progress == 1) {
+                    telemetry.addLine("selecting bit");
+                    telemetry.addData("side", side);
+                    telemetry.addData("color", color);
 
+                    telemetry.update();
+
+                    if (gamepad1.dpad_left) {
+                        side = 0;
+
+                    } else if (gamepad1.dpad_up) {
+                        color = 0;
+
+                    } else if (gamepad1.dpad_right) {
+                        side = 1;
+
+                    }
+                    } else if (gamepad1.dpad_down) {
+                        color = 1;
+
+                    }
+                }
+
+
+                if (gamepad1.touchpad && !held) {
+                    held = true;
+                    if (gamepad1.touchpad_finger_1_x > 50) {
+                        progress++;
+                    } else {
+                        progress -= 1;
+                        progress = clamp(progress, 0, screen_count);
+                    }
+                }
+                if (!gamepad1.touchpad){
+                    held = false;
+                }
+            }
         }
     }
-}
