@@ -159,14 +159,16 @@ public class VisionTest extends LinearOpMode {
         //build trajectories --------------------------------------------------------
 
         // red to tape
-        ParallelAction RedL_To_Tape = (ParallelAction) drive.actionBuilder(startPoseRed)
-                .lineToXConstantHeading(-48)
-                .lineToYConstantHeading(-38)
+        Action RedL_To_Tape = drive.actionBuilder(startPoseRed)
+                .splineToConstantHeading(new Vector2d(-48,-38), Math.toRadians(0))
+                //.lineToXConstantHeading(-48)
+                //.lineToYConstantHeading(-38)
                 .build();
 
-        ParallelAction RedM_To_Tape = (ParallelAction) drive.actionBuilder(startPoseRed)
-                .lineToXConstantHeading(-43)
-                .lineToYConstantHeading(-28)
+        Action RedM_To_Tape = drive.actionBuilder(startPoseRed)
+                .splineToConstantHeading(new Vector2d(-43,-28), Math.toRadians(0))
+                //.lineToXConstantHeading(-43)
+                //.lineToYConstantHeading(-28)
                 .build();
 
         Action RedR_To_Tape = drive.actionBuilder(startPoseRed)
@@ -224,18 +226,20 @@ public class VisionTest extends LinearOpMode {
 
         ///--------------------------------------------------------------------------------------------------
         // Blue R to tape
-        ParallelAction BlueR_To_Tape = (ParallelAction) drive.actionBuilder(startPoseBlue)
-                .lineToXConstantHeading(-48)
-                .lineToYConstantHeading(33)
+        Action BlueR_To_Tape = drive.actionBuilder(startPoseBlue)
+                .splineToConstantHeading(new Vector2d(-48,33), Math.toRadians(180))
+                //.lineToXConstantHeading(-48)
+                //.lineToYConstantHeading(33)
                 .build();
 
         Action BlueL_To_Tape = drive.actionBuilder(startPoseBlue)
                 .splineToConstantHeading(new Vector2d(-22, 32), Math.toRadians(0))
                 .build();
 
-        ParallelAction BlueM_To_Tape = (ParallelAction) drive.actionBuilder(startPoseBlue)
-                .lineToXConstantHeading(-39)
-                .lineToYConstantHeading(29)
+        Action BlueM_To_Tape = drive.actionBuilder(startPoseBlue)
+                .splineToConstantHeading(new Vector2d(-39,29), Math.toRadians(18))
+                //.lineToXConstantHeading(-39)
+                //.lineToYConstantHeading(29)
                 .build();
 
 
@@ -667,7 +671,7 @@ public class VisionTest extends LinearOpMode {
             int screen_count = 2;
             boolean held = false;
 
-            while (progress != screen_count) {
+            while (progress <= screen_count) {
                 //telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));   #ref
                 // this is the park and wait selection
                 if (progress == 0) {
@@ -741,12 +745,12 @@ public class VisionTest extends LinearOpMode {
                         color = 1;
 
                     }
-                }
-
 
                 if (gamepad1.touchpad && !held) {
+
                     held = true;
-                    if (gamepad1.touchpad_finger_1_x > 50) {
+
+                    if (gamepad1.touchpad_finger_1_x > 0.5) {
                         progress++;
                     } else {
                         progress -= 1;
@@ -756,6 +760,14 @@ public class VisionTest extends LinearOpMode {
                 if (!gamepad1.touchpad){
                     held = false;
                 }
+                //if (gamepad1.touchpad) {
+                //    progress++;
+                //}
+                }
+                break;
+
+
+
             }
         }
     }
