@@ -68,23 +68,22 @@ public class VisionTest extends LinearOpMode {
 
     private static int wait_time = 0;
 
-    private static int side = 0;
+    private static int side = 0; //0 = front, 1 = back
 
-    private static int color = 0;
+    private static int color = 0; //0 = red, 1 = blue
 
     private static int end_pos = 0; //0 = left,   1 = right,   2 = middle
 
 
+    private static float rectHeight = .6f / 8f;
+    private static float rectWidth = 1.5f / 8f;
 
-    private static float rectHeight = .6f/8f;
-    private static float rectWidth = 1.5f/8f;
+    private static final float offsetX = 0f / 8f;//changing this moves the three rects and the three circles left or right, range : (-2, 2) not inclusive
+    private static final float offsetY = 0f / 8f;//changing this moves the three rects and circles up or down, range: (-4, 4) not inclusive
 
-    private static final float offsetX = 0f/8f;//changing this moves the three rects and the three circles left or right, range : (-2, 2) not inclusive
-    private static final float offsetY = 0f/8f;//changing this moves the three rects and circles up or down, range: (-4, 4) not inclusive
-
-    private static final float[] midPos = {4f/8f+offsetX, 4.1f/8f+offsetY};//0 = col, 1 = row
-    private static final float[] leftPos = {0.5f/8f+offsetX, 4f/8f+offsetY};
-    private static final float[] rightPos = {7.5f/8f+offsetX, 4f/8f+offsetY};
+    private static final float[] midPos = {4f / 8f + offsetX, 4.1f / 8f + offsetY};//0 = col, 1 = row
+    private static final float[] leftPos = {0.5f / 8f + offsetX, 4f / 8f + offsetY};
+    private static final float[] rightPos = {7.5f / 8f + offsetX, 4f / 8f + offsetY};
     //moves all rectangles right or left by amount. units are in ratio to monitor
 
     private final int rows = 1280;
@@ -105,7 +104,7 @@ public class VisionTest extends LinearOpMode {
     private DcMotor bottomrightmotor;
 
 
-    enum pos{
+    enum pos {
         left,
         middle,
         right
@@ -148,25 +147,51 @@ public class VisionTest extends LinearOpMode {
 
         arm_tilt = hardwareMap.get(DcMotor.class, "arm_tilt");
 
+
+        //telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));   #ref
+        // this is the park and wait selection
+        selectOptions();
+        telemetry.addLine("calculating trajectories");
+        telemetry.update();
+
+
         //roadrunner initialization
-        MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(11.8, 61.7, Math.toRadians(90)));
+        MecanumDrive drive = null;
 
         Pose2d startPoseRed = new Pose2d(-39, -60, Math.toRadians(90));
 
         Pose2d startPoseBlue = new Pose2d(-32, 60, Math.toRadians(-90));
+
+        if (side == 0 && color == 0){ //red front
+            drive = new MecanumDrive(hardwareMap, startPoseRed);
+        }
+        else if (side == 0 && color == 1){ //blue front
+            drive = new MecanumDrive(hardwareMap, startPoseBlue);
+        }
+
+
+        //placeholder
+        if (side == 1 && color == 0){ //red back
+            drive = new MecanumDrive(hardwareMap, new Pose2d(-39, -60, Math.toRadians(90)));
+        }
+        else if (side == 1 && color == 1){ //blue back
+            drive = new MecanumDrive(hardwareMap, new Pose2d(-32, 60, Math.toRadians(90)));
+        }
+
+
 
 
         //build trajectories --------------------------------------------------------
 
         // red to tape
         Action RedL_To_Tape = drive.actionBuilder(startPoseRed)
-                .splineToConstantHeading(new Vector2d(-48,-38), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(-48, -38), Math.toRadians(0))
                 //.lineToXConstantHeading(-48)
                 //.lineToYConstantHeading(-38)
                 .build();
 
         Action RedM_To_Tape = drive.actionBuilder(startPoseRed)
-                .splineToConstantHeading(new Vector2d(-43,-28), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(-43, -28), Math.toRadians(0))
                 //.lineToXConstantHeading(-43)
                 //.lineToYConstantHeading(-28)
                 .build();
@@ -223,11 +248,10 @@ public class VisionTest extends LinearOpMode {
                 .build();
 
 
-
         ///--------------------------------------------------------------------------------------------------
         // Blue R to tape
         Action BlueR_To_Tape = drive.actionBuilder(startPoseBlue)
-                .splineToConstantHeading(new Vector2d(-48,33), Math.toRadians(180))
+                .splineToConstantHeading(new Vector2d(-48, 33), Math.toRadians(180))
                 //.lineToXConstantHeading(-48)
                 //.lineToYConstantHeading(33)
                 .build();
@@ -237,11 +261,10 @@ public class VisionTest extends LinearOpMode {
                 .build();
 
         Action BlueM_To_Tape = drive.actionBuilder(startPoseBlue)
-                .splineToConstantHeading(new Vector2d(-39,29), Math.toRadians(18))
+                .splineToConstantHeading(new Vector2d(-39, 29), Math.toRadians(18))
                 //.lineToXConstantHeading(-39)
                 //.lineToYConstantHeading(29)
                 .build();
-
 
 
         // Blue to wait pos
@@ -293,13 +316,10 @@ public class VisionTest extends LinearOpMode {
 
         ///----------------------------------------------------------------------------------------------------
 
+
+
         bottom_grip.setPosition(0);
         top_grip.setPosition(0.8);
-
-        //telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));   #ref
-        // this is the park and wait selection
-        selectOptions();
-
 
 
         telemetry.addData("Robot has initialized", ")");
@@ -310,27 +330,26 @@ public class VisionTest extends LinearOpMode {
         waitForStart();
         runtime.reset();
         while (opModeIsActive()) {
-            telemetry.addData("Values B", valLeft+"   "+valMid+"   "+valRight);
-            telemetry.addData("Values R", valLeftR+"   "+valMidR+"   "+valRightR);
+            telemetry.addData("Values B", valLeft + "   " + valMid + "   " + valRight);
+            telemetry.addData("Values R", valLeftR + "   " + valMidR + "   " + valRightR);
 
             telemetry.update();
 
             while (valLeft != -1 || valRight != -1 || valMid != -1 || valLeftR != -1 || valRightR != -1 || valMidR != -1) {
-                telemetry.addData("Values B", valLeft+"   "+valMid+"   "+valRight);
-                telemetry.addData("Values R", valLeftR+"   "+valMidR+"   "+valRightR);
+                telemetry.addData("Values B", valLeft + "   " + valMid + "   " + valRight);
+                telemetry.addData("Values R", valLeftR + "   " + valMidR + "   " + valRightR);
                 telemetry.addData("max", max);
                 telemetry.update();
                 hand_tilt.setPosition(0.48);
 
-                if(isStopRequested()) return;
+                if (isStopRequested()) return;
 
                 //blue side
                 if (valLeft == max || valMid == max || valRight == max) {
                     pos state = pos.left;
-                    if (valMid == max){
+                    if (valMid == max) {
                         state = pos.middle;
-                    }
-                    else if (valRight == max){
+                    } else if (valRight == max) {
                         state = pos.right;
                     }
                     sleep(10);
@@ -340,13 +359,11 @@ public class VisionTest extends LinearOpMode {
                         Actions.runBlocking(BlueL_To_Tape);
                         dropPixel();
                         Actions.runBlocking(Blue_to_waitL);
-                    }
-                    else if (state == pos.right) {
+                    } else if (state == pos.right) {
                         Actions.runBlocking(BlueR_To_Tape);
                         dropPixel();
                         Actions.runBlocking(Blue_to_wait);
-                    }
-                    else { //middle
+                    } else { //middle
                         Actions.runBlocking(BlueM_To_Tape);
                         dropPixel();
                         Actions.runBlocking(Blue_to_wait);
@@ -361,11 +378,9 @@ public class VisionTest extends LinearOpMode {
 
                     if (state == pos.left) {
                         Actions.runBlocking(Place_On_board_BlueL);
-                    }
-                    else if (state == pos.right) {
+                    } else if (state == pos.right) {
                         Actions.runBlocking(Place_On_board_BlueR);
-                    }
-                    else {
+                    } else {
                         Actions.runBlocking(Place_On_board_BlueM);
                     }
 
@@ -381,23 +396,19 @@ public class VisionTest extends LinearOpMode {
                     sleep(50);
                     if (end_pos == 0) {
                         Actions.runBlocking(Blue_Place_returnL);
-                    }
-                    else if (end_pos == 1) {
+                    } else if (end_pos == 1) {
                         Actions.runBlocking(Blue_Place_returnR);
                     }
                     sleep(12345678);
                 }
 
 
-
-
                 //red side
                 if (valLeftR == max || valMidR == max || valRightR == max) {
                     pos state = pos.left;
-                    if (valMidR == max){
+                    if (valMidR == max) {
                         state = pos.middle;
-                    }
-                    else if (valRightR == max){
+                    } else if (valRightR == max) {
                         state = pos.right;
                     }
 
@@ -407,13 +418,11 @@ public class VisionTest extends LinearOpMode {
                         Actions.runBlocking(RedL_To_Tape);
                         dropPixel();
                         Actions.runBlocking(Red_to_wait);
-                    }
-                    else if (state == pos.right) {
+                    } else if (state == pos.right) {
                         Actions.runBlocking(RedR_To_Tape);
                         dropPixel();
                         Actions.runBlocking(Red_to_waitR);
-                    }
-                    else {
+                    } else {
                         Actions.runBlocking(RedM_To_Tape);
                         dropPixel();
                         Actions.runBlocking(Red_to_wait);
@@ -428,11 +437,9 @@ public class VisionTest extends LinearOpMode {
 
                     if (state == pos.left) {
                         Actions.runBlocking(Place_On_board_RedL);
-                    }
-                    else if (state == pos.right) {
+                    } else if (state == pos.right) {
                         Actions.runBlocking(Place_On_board_RedR);
-                    }
-                    else {
+                    } else {
                         Actions.runBlocking(Place_On_board_RedM);
                     }
 
@@ -448,8 +455,7 @@ public class VisionTest extends LinearOpMode {
                     sleep(50);
                     if (end_pos == 0) {
                         Actions.runBlocking(Red_Place_returnL);
-                    }
-                    else if (end_pos == 1) {
+                    } else if (end_pos == 1) {
                         Actions.runBlocking(Red_Place_returnR);
                     }
                     sleep(1233456);
@@ -465,8 +471,7 @@ public class VisionTest extends LinearOpMode {
 
 
     //detection pipeline
-    static class StageSwitchingPipeline extends OpenCvPipeline
-    {
+    static class StageSwitchingPipeline extends OpenCvPipeline {
         Mat yCbCrChan2Mat = new Mat();
         Mat yCbCrR = new Mat();
         Mat thresholdMat = new Mat();
@@ -474,8 +479,7 @@ public class VisionTest extends LinearOpMode {
         Mat all = new Mat();
         List<MatOfPoint> contoursList = new ArrayList<>();
 
-        enum Stage
-        {//color difference. greyscale
+        enum Stage {//color difference. greyscale
             detection,//includes outlines
             THRESHOLD,//b&w
             RAW_IMAGE,//displays raw view
@@ -485,8 +489,7 @@ public class VisionTest extends LinearOpMode {
         private Stage[] stages = Stage.values();
 
         @Override
-        public void onViewportTapped()
-        {
+        public void onViewportTapped() {
             /*
              * Note that this method is invoked from the UI thread
              * so whatever we do here, we must do quickly.
@@ -496,8 +499,7 @@ public class VisionTest extends LinearOpMode {
 
             int nextStageNum = currentStageNum + 1;
 
-            if(nextStageNum >= stages.length)
-            {
+            if (nextStageNum >= stages.length) {
                 nextStageNum = 0;
             }
 
@@ -505,8 +507,7 @@ public class VisionTest extends LinearOpMode {
         }
 
         @Override
-        public Mat processFrame(Mat input)
-        {
+        public Mat processFrame(Mat input) {
             contoursList.clear();
             /*
              * This pipeline finds the contours of yellow blobs such as the Gold Mineral
@@ -525,96 +526,89 @@ public class VisionTest extends LinearOpMode {
             yCbCrChan2Mat.copyTo(all);//copies mat object
 
 
+            double[] pixMid = yCbCrChan2Mat.get((int) (input.rows() * midPos[1]), (int) (input.cols() * midPos[0]));//gets value at circle
+            valMid = (int) pixMid[0];
 
-            double[] pixMid = yCbCrChan2Mat.get((int)(input.rows()* midPos[1]), (int)(input.cols()* midPos[0]));//gets value at circle
-            valMid = (int)pixMid[0];
+            double[] pixLeft = yCbCrChan2Mat.get((int) (input.rows() * leftPos[1]), (int) (input.cols() * leftPos[0]));//gets value at circle
+            valLeft = (int) pixLeft[0];
 
-            double[] pixLeft = yCbCrChan2Mat.get((int)(input.rows()* leftPos[1]), (int)(input.cols()* leftPos[0]));//gets value at circle
-            valLeft = (int)pixLeft[0];
+            double[] pixRight = yCbCrChan2Mat.get((int) (input.rows() * rightPos[1]), (int) (input.cols() * rightPos[0]));//gets value at circle
+            valRight = (int) pixRight[0];
 
-            double[] pixRight = yCbCrChan2Mat.get((int)(input.rows()* rightPos[1]), (int)(input.cols()* rightPos[0]));//gets value at circle
-            valRight = (int)pixRight[0];
+            double[] pixMidR = yCbCrR.get((int) (input.rows() * midPos[1]), (int) (input.cols() * midPos[0]));//gets value at circle
+            valMidR = (int) pixMidR[0];
 
-            double[] pixMidR = yCbCrR.get((int)(input.rows()* midPos[1]), (int)(input.cols()* midPos[0]));//gets value at circle
-            valMidR = (int)pixMidR[0];
+            double[] pixLeftR = yCbCrR.get((int) (input.rows() * leftPos[1]), (int) (input.cols() * leftPos[0]));//gets value at circle
+            valLeftR = (int) pixLeftR[0];
 
-            double[] pixLeftR = yCbCrR.get((int)(input.rows()* leftPos[1]), (int)(input.cols()* leftPos[0]));//gets value at circle
-            valLeftR = (int)pixLeftR[0];
-
-            double[] pixRightR = yCbCrR.get((int)(input.rows()* rightPos[1]), (int)(input.cols()* rightPos[0]));//gets value at circle
-            valRightR = (int)pixRightR[0];
+            double[] pixRightR = yCbCrR.get((int) (input.rows() * rightPos[1]), (int) (input.cols() * rightPos[0]));//gets value at circle
+            valRightR = (int) pixRightR[0];
 
 
             max = Math.max(valMid, Math.max(valLeft, Math.max(valRight, Math.max(valLeftR, Math.max(valMidR, valRightR)))));
 
 
-
-
             //create three points
-            Point pointMid = new Point((int)(input.cols()* midPos[0]), (int)(input.rows()* midPos[1]));
-            Point pointLeft = new Point((int)(input.cols()* leftPos[0]), (int)(input.rows()* leftPos[1]));
-            Point pointRight = new Point((int)(input.cols()* rightPos[0]), (int)(input.rows()* rightPos[1]));
+            Point pointMid = new Point((int) (input.cols() * midPos[0]), (int) (input.rows() * midPos[1]));
+            Point pointLeft = new Point((int) (input.cols() * leftPos[0]), (int) (input.rows() * leftPos[1]));
+            Point pointRight = new Point((int) (input.cols() * rightPos[0]), (int) (input.rows() * rightPos[1]));
 
             //draw circles on those points
-            Imgproc.circle(all, pointMid,5, new Scalar( 255, 0, 0 ),1 );//draws circle
-            Imgproc.circle(all, pointLeft,5, new Scalar( 255, 0, 0 ),1 );//draws circle
-            Imgproc.circle(all, pointRight,5, new Scalar( 255, 0, 0 ),1 );//draws circle
+            Imgproc.circle(all, pointMid, 5, new Scalar(255, 0, 0), 1);//draws circle
+            Imgproc.circle(all, pointLeft, 5, new Scalar(255, 0, 0), 1);//draws circle
+            Imgproc.circle(all, pointRight, 5, new Scalar(255, 0, 0), 1);//draws circle
 
             //draw 3 rectangles
             Imgproc.rectangle(//1-3
                     all,
                     new Point(
-                            input.cols()*(leftPos[0]-rectWidth/2),
-                            input.rows()*(leftPos[1]-rectHeight/2)),
+                            input.cols() * (leftPos[0] - rectWidth / 2),
+                            input.rows() * (leftPos[1] - rectHeight / 2)),
                     new Point(
-                            input.cols()*(leftPos[0]+rectWidth/2),
-                            input.rows()*(leftPos[1]+rectHeight/2)),
+                            input.cols() * (leftPos[0] + rectWidth / 2),
+                            input.rows() * (leftPos[1] + rectHeight / 2)),
                     new Scalar(0, 255, 0), 3);
             Imgproc.rectangle(//3-5
                     all,
                     new Point(
-                            input.cols()*(midPos[0]-rectWidth/2),
-                            input.rows()*(midPos[1]-rectHeight/2)),
+                            input.cols() * (midPos[0] - rectWidth / 2),
+                            input.rows() * (midPos[1] - rectHeight / 2)),
                     new Point(
-                            input.cols()*(midPos[0]+rectWidth/2),
-                            input.rows()*(midPos[1]+rectHeight/2)),
+                            input.cols() * (midPos[0] + rectWidth / 2),
+                            input.rows() * (midPos[1] + rectHeight / 2)),
                     new Scalar(0, 255, 0), 3);
             Imgproc.rectangle(//5-7
                     all,
                     new Point(
-                            input.cols()*(rightPos[0]-rectWidth/2),
-                            input.rows()*(rightPos[1]-rectHeight/2)),
+                            input.cols() * (rightPos[0] - rectWidth / 2),
+                            input.rows() * (rightPos[1] - rectHeight / 2)),
                     new Point(
-                            input.cols()*(rightPos[0]+rectWidth/2),
-                            input.rows()*(rightPos[1]+rectHeight/2)),
+                            input.cols() * (rightPos[0] + rectWidth / 2),
+                            input.rows() * (rightPos[1] + rectHeight / 2)),
                     new Scalar(0, 255, 0), 3);
 
-            switch (stageToRenderToViewport)
-            {
-                case THRESHOLD:
-                {
+            switch (stageToRenderToViewport) {
+                case THRESHOLD: {
                     return thresholdMat;
                 }
 
-                case detection:
-                {
+                case detection: {
                     return all;
                 }
 
-                case RAW_IMAGE:
-                {
+                case RAW_IMAGE: {
                     return input;
                 }
 
-                default:
-                {
+                default: {
                     return input;
                 }
             }
         }
 
     }
-    public void dropPixel(){
+
+    public void dropPixel() {
         bottom_grip.setPosition(1);
         //top_grip.setPosition(0);
         sleep(200);
@@ -629,8 +623,8 @@ public class VisionTest extends LinearOpMode {
 
     public void delay_wait(int wait_dela) {
         wait_stop.reset();
-        while(true){
-            if (wait_stop.seconds() > wait_dela){
+        while (true) {
+            if (wait_stop.seconds() > wait_dela) {
                 break;
             }
         }
@@ -657,8 +651,9 @@ public class VisionTest extends LinearOpMode {
         toprightmotor.setPower(0);
 
     }
+
     private void selectOptions() {
-        while (!isStarted() && !isStopRequested()){
+        while (!isStarted() && !isStopRequested()) {
             String middle = "Middle";
             String left = "Left";
             String right = "Right";
@@ -732,20 +727,21 @@ public class VisionTest extends LinearOpMode {
                     telemetry.update();
 
                     if (gamepad1.dpad_left) {
-                        side = 0;
-
-                    } else if (gamepad1.dpad_up) {
                         color = 0;
 
+                    } else if (gamepad1.dpad_up) {
+                        side = 0;
+
                     } else if (gamepad1.dpad_right) {
+                        color = 1;
+
+                    } else if (gamepad1.dpad_down) {
                         side = 1;
 
                     }
-                    } else if (gamepad1.dpad_down) {
-                        color = 1;
 
-                    }
 
+                }
                 if (gamepad1.touchpad && !held) {
 
                     held = true;
@@ -757,17 +753,12 @@ public class VisionTest extends LinearOpMode {
                         progress = clamp(progress, 0, screen_count);
                     }
                 }
-                if (!gamepad1.touchpad){
+                if (!gamepad1.touchpad) {
                     held = false;
                 }
-                //if (gamepad1.touchpad) {
-                //    progress++;
-                //}
-                }
-                break;
-
-
 
             }
+            break;
         }
     }
+}
