@@ -97,6 +97,8 @@ public class TeleopMain extends LinearOpMode {
         bottom_grip.setPosition(0);
         top_grip.setPosition(0.85);
 
+        arm_slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
 
         waitForStart();
         if (opModeIsActive()) {

@@ -129,6 +129,7 @@ public class VisionTest extends LinearOpMode {
         arm_tilt = hardwareMap.get(DcMotor.class, "arm_tilt");
         arm_slide = hardwareMap.get(DcMotor.class, "arm_slide");
 
+        arm_slide.setDirection(DcMotorSimple.Direction.REVERSE);
 
         arm_slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         //initAprilTag();
@@ -157,6 +158,8 @@ public class VisionTest extends LinearOpMode {
 
         //roadrunner initialization
         MecanumDrive drive = null;
+
+        Action PixelAction;
 
         Pose2d startPoseRed = new Pose2d(-39, -60, Math.toRadians(90));
 
@@ -460,6 +463,11 @@ public class VisionTest extends LinearOpMode {
                     }
                     sleep(1233456);
                 }
+                //new
+
+                Actions.runBlocking(new SequentialAction(
+
+                ));
 
 
             }
