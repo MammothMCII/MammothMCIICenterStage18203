@@ -4,7 +4,9 @@ package org.firstinspires.ftc.teamcode;
 import static androidx.core.math.MathUtils.clamp;
 
 import com.acmerobotics.roadrunner.ParallelAction;
+import com.acmerobotics.roadrunner.ProfileAccelConstraint;
 import com.acmerobotics.roadrunner.Trajectory;
+import com.acmerobotics.roadrunner.TranslationalVelConstraint;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -12,6 +14,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.checkerframework.common.subtyping.qual.Bottom;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
@@ -93,8 +96,6 @@ public class VisionTest extends LinearOpMode {
 
 
     private DcMotor arm_tilt;
-
-    private Servo top_grip;
     private Servo hand_tilt;
     private Servo bottom_grip;
     private DcMotor topleftmotor;
@@ -109,6 +110,7 @@ public class VisionTest extends LinearOpMode {
         right
     }
 
+    //arm lift
     public class Lift {
         private DcMotor lift;
 
@@ -130,7 +132,7 @@ public class VisionTest extends LinearOpMode {
 
                 double pos = lift.getCurrentPosition();
                 packet.put("liftPos", pos);
-                if (pos < 200.0) { //50 ticks per in
+                if (pos < 400.0) { //50 ticks per in
                     return true;
                 } else {
                     lift.setPower(0);
@@ -141,6 +143,93 @@ public class VisionTest extends LinearOpMode {
         public Action liftUp() {
             return new LiftUp();
         }
+    }
+
+
+    //top claw
+    public class TopGrip{
+        private Servo topgrip;
+
+        public TopGrip(HardwareMap hardwareMap){
+            topgrip = hardwareMap.get(Servo.class, "top_grip");
+        }
+
+        public class Close implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet){
+                topgrip.setPosition(0.8);
+                return false;
+            }
+        }
+
+        public Action Close() { return new Close(); }
+
+        public class Open implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet){
+                topgrip.setPosition(0);
+                return false;
+            }
+        }
+        public Action Open() { return new Open(); }
+
+    }
+
+    //bottom grip
+    public class BottomGrip {
+        private Servo bottomgrip;
+
+        public BottomGrip(HardwareMap hardwareMap){
+            bottomgrip = hardwareMap.get(Servo.class, "bottom_grip");
+        }
+
+        public class Close implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet){
+                bottomgrip.setPosition(0);
+                return false;
+            }
+        }
+
+        public Action Close() { return new Close(); }
+
+        public class Open implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet){
+                bottomgrip.setPosition(0.8);
+                return false;
+            }
+        }
+        public Action Open() { return new Open(); }
+
+    }
+
+    public class Wrist {
+        private Servo wrist;
+
+        public Wrist(HardwareMap hardwareMap){
+            wrist = hardwareMap.get(Servo.class, "hand_tilt");
+        }
+
+        public class Up implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet){
+                wrist.setPosition(0.2);
+                return false;
+            }
+        }
+
+        public Action Up() { return new Up(); }
+
+        public class Down implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet){
+                wrist.setPosition(0.48);
+                return false;
+            }
+        }
+        public Action Down() { return new Down(); }
+
     }
 
 
@@ -156,9 +245,6 @@ public class VisionTest extends LinearOpMode {
         bottomleftmotor.setDirection(DcMotorSimple.Direction.FORWARD);
         toprightmotor.setDirection(DcMotorSimple.Direction.REVERSE);
         bottomrightmotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        top_grip = hardwareMap.get(Servo.class, "top_grip");
-        bottom_grip = hardwareMap.get(Servo.class, "bottom_grip");
-        hand_tilt = hardwareMap.get(Servo.class, "hand_tilt");
         arm_tilt = hardwareMap.get(DcMotor.class, "arm_tilt");
 
         //initAprilTag();
@@ -185,6 +271,9 @@ public class VisionTest extends LinearOpMode {
         telemetry.update();
 
         Lift lift = new Lift(hardwareMap);
+        TopGrip topGrip = new TopGrip(hardwareMap);
+        BottomGrip bottomGrip = new BottomGrip(hardwareMap);
+        Wrist wrist = new Wrist(hardwareMap);
 
         //roadrunner initialization
         MecanumDrive drive = null;
@@ -222,7 +311,7 @@ public class VisionTest extends LinearOpMode {
 
         // red to tape
         Action RedL_To_Tape = drive.actionBuilder(startPoseRed)
-                .splineToConstantHeading(new Vector2d(-48, -38), Math.toRadians(90))
+                .splineToConstantHeading(new Vector2d(-48, -34), Math.toRadians(90), null, new ProfileAccelConstraint(-10, 10))
                 .build();
 
         Action RedM_To_Tape = drive.actionBuilder(startPoseRed)
@@ -235,25 +324,26 @@ public class VisionTest extends LinearOpMode {
 
 
         // red to wait pos
-        Action Red_to_waitR = drive.actionBuilder(new Pose2d(-23, -32, 90))
+        Action Red_to_waitR = drive.actionBuilder(new Pose2d(-23, -32, Math.toRadians(90)))
                 .splineToConstantHeading(new Vector2d(-26, -33), Math.toRadians(180))
                 .splineToConstantHeading(new Vector2d(-60, -33), Math.toRadians(90))
                 .splineToConstantHeading(new Vector2d(-60, -24), Math.toRadians(90))
                 .splineToSplineHeading(new Pose2d(-50, -9, Math.toRadians(0)), Math.toRadians(0))
                 .build();
 
-        Action Red_to_waitM = drive.actionBuilder(new Pose2d(-43, -28, 90))
+        Action Red_to_waitM = drive.actionBuilder(new Pose2d(-43, -28, Math.toRadians(90)))
                 .splineToConstantHeading(new Vector2d(-48, -50), Math.toRadians(180))
                 .splineToConstantHeading(new Vector2d(-60, -50), Math.toRadians(90))
                 .splineToConstantHeading(new Vector2d(-60, -24), Math.toRadians(90))
                 .splineToSplineHeading(new Pose2d(-50, -9, Math.toRadians(0)), Math.toRadians(0))
                 .build();
 
-        Action Red_to_waitL = drive.actionBuilder(new Pose2d(-48, -38, 90))
-                .splineToConstantHeading(new Vector2d(-48, -45), Math.toRadians(-90))
-                .splineToConstantHeading(new Vector2d(-55, -50), Math.toRadians(180))
-                .splineToConstantHeading(new Vector2d(-60, -24), Math.toRadians(90))
-                .splineToSplineHeading(new Pose2d(-50, -9, Math.toRadians(0)), Math.toRadians(0))
+        Action Red_to_waitL = drive.actionBuilder(new Pose2d(-48, -34, Math.toRadians(90)))
+                .waitSeconds(1)
+                .splineToConstantHeading(new Vector2d(-48, -50), Math.toRadians(-90), null, new ProfileAccelConstraint(-10, 10))
+                .splineToConstantHeading(new Vector2d(-55, -50), Math.toRadians(180), null, new ProfileAccelConstraint(-10, 10))
+                .splineToConstantHeading(new Vector2d(-60, -24), Math.toRadians(90), null, new ProfileAccelConstraint(-10, 10))
+                .splineToSplineHeading(new Pose2d(-50, -9, Math.toRadians(0)), Math.toRadians(0), new TranslationalVelConstraint(50), new ProfileAccelConstraint(-10, 10))
                 .build();
 
         //red return
@@ -264,15 +354,16 @@ public class VisionTest extends LinearOpMode {
 
         //red board
         Action Place_On_board_RedL = drive.actionBuilder(new Pose2d(40, -20, 0))
-                .splineToConstantHeading(new Vector2d(55, -23), 0)
+                .splineToConstantHeading(new Vector2d(50, -29), 0, null, new ProfileAccelConstraint(-10, 10))
+                //.splineToConstantHeading(new Vector2d(55, -28), 0)
                 .build();
 
         Action Place_On_board_RedM = drive.actionBuilder(new Pose2d(40, -20, 0))
-                .splineToConstantHeading(new Vector2d(55, -31), 0)
+                .splineToConstantHeading(new Vector2d(50, -31), 0)
                 .build();
 
         Action Place_On_board_RedR = drive.actionBuilder(new Pose2d(40, -20, 0))
-                .splineToConstantHeading(new Vector2d(55, -35), 0)
+                .splineToConstantHeading(new Vector2d(50, -35), 0)
                 .build();
 
 
@@ -359,14 +450,14 @@ public class VisionTest extends LinearOpMode {
 
 
 
-        bottom_grip.setPosition(0);
-        top_grip.setPosition(0.8);
-
 
         telemetry.addData("Robot has initialized", ")");
         telemetry.addData("end pos", end_pos);
         telemetry.addData("time delay", wait_time);
         telemetry.update();
+
+        Actions.runBlocking(new SequentialAction(
+                bottomGrip.Close(), topGrip.Close()));
 
         waitForStart();
         runtime.reset();
@@ -381,127 +472,10 @@ public class VisionTest extends LinearOpMode {
                 telemetry.addData("Values R", valLeftR + "   " + valMidR + "   " + valRightR);
                 telemetry.addData("max", max);
                 telemetry.update();
-                hand_tilt.setPosition(0.48);
+
 
                 if (isStopRequested()) return;
-                /**
-                //blue side
-                if (valLeft == max || valMid == max || valRight == max) {
-                    pos state = pos.left;
-                    if (valMid == max) {
-                        state = pos.middle;
-                    } else if (valRight == max) {
-                        state = pos.right;
-                    }
-                    sleep(10);
 
-
-                    if (state == pos.left) {
-                        Actions.runBlocking(BlueL_To_Tape);
-                        dropPixel();
-                        Actions.runBlocking(Blue_to_waitL);
-                    } else if (state == pos.right) {
-                        Actions.runBlocking(BlueR_To_Tape);
-                        dropPixel();
-                        Actions.runBlocking(Blue_to_wait);
-                    } else { //middle
-                        Actions.runBlocking(BlueM_To_Tape);
-                        dropPixel();
-                        Actions.runBlocking(Blue_to_wait);
-                    }
-
-                    delay_wait(wait_time);
-                    Actions.runBlocking(Blue_Return);
-                    arm_slide.setPower(1);
-                    sleep(600);
-                    arm_slide.setPower(0);
-
-
-                    if (state == pos.left) {
-                        Actions.runBlocking(Place_On_board_BlueL);
-                    } else if (state == pos.right) {
-                        Actions.runBlocking(Place_On_board_BlueR);
-                    } else {
-                        Actions.runBlocking(Place_On_board_BlueM);
-                    }
-
-                    sleep(10);
-                    top_grip.setPosition(0);
-                    wait_stop.reset();
-                    sleep(10);
-
-                    do {
-                        wiggle();
-                    } while (!(wait_stop.seconds() > 1));
-
-                    sleep(50);
-                    if (end_pos == 0) {
-                        Actions.runBlocking(Blue_Place_returnL);
-                    } else if (end_pos == 1) {
-                        Actions.runBlocking(Blue_Place_returnR);
-                    }
-                    sleep(12345678);
-                }
-
-
-                //red side
-                if (valLeftR == max || valMidR == max || valRightR == max) {
-                    pos state = pos.left;
-                    if (valMidR == max) {
-                        state = pos.middle;
-                    } else if (valRightR == max) {
-                        state = pos.right;
-                    }
-
-                    sleep(10);
-
-                    if (state == pos.left) {
-                        Actions.runBlocking(RedL_To_Tape);
-                        dropPixel();
-                        Actions.runBlocking(Red_to_wait);
-                    } else if (state == pos.right) {
-                        Actions.runBlocking(RedR_To_Tape);
-                        dropPixel();
-                        Actions.runBlocking(Red_to_waitR);
-                    } else {
-                        Actions.runBlocking(RedM_To_Tape);
-                        dropPixel();
-                        Actions.runBlocking(Red_to_wait);
-                    }
-
-                    delay_wait(wait_time);
-                    Actions.runBlocking(Red_Return);
-                    arm_slide.setPower(1);
-                    sleep(600);
-                    arm_slide.setPower(0);
-
-
-                    if (state == pos.left) {
-                        Actions.runBlocking(Place_On_board_RedL);
-                    } else if (state == pos.right) {
-                        Actions.runBlocking(Place_On_board_RedR);
-                    } else {
-                        Actions.runBlocking(Place_On_board_RedM);
-                    }
-
-                    sleep(10);
-                    top_grip.setPosition(0);
-                    wait_stop.reset();
-                    sleep(10);
-
-                    do {
-                        wiggle();
-                    } while (!(wait_stop.seconds() > 1));
-
-                    sleep(50);
-                    if (end_pos == 0) {
-                        Actions.runBlocking(Red_Place_returnL);
-                    } else if (end_pos == 1) {
-                        Actions.runBlocking(Red_Place_returnR);
-                    }
-                    sleep(1233456);
-                }**/
-                //new
 
                  //blue side
                  if (color == 1) {
@@ -554,10 +528,15 @@ public class VisionTest extends LinearOpMode {
                 Actions.runBlocking(
                         new SequentialAction(
                                 PixelAction,
+                                bottomGrip.Open(),
                                 ToWaitAction,
                                 ToBackdropAction,
-                                lift.liftUp(),
-                                BackdropPlaceAction,
+                                new ParallelAction(
+                                        wrist.Up(),
+                                        lift.liftUp(),
+                                        BackdropPlaceAction
+                                ),
+                                topGrip.Open(),
                                 ParkAction
                         )
                 );
@@ -708,17 +687,6 @@ public class VisionTest extends LinearOpMode {
             }
         }
 
-    }
-
-
-
-    public void delay_wait(int wait_dela) {
-        wait_stop.reset();
-        while (true) {
-            if (wait_stop.seconds() > wait_dela) {
-                break;
-            }
-        }
     }
 
     public void wiggle() {

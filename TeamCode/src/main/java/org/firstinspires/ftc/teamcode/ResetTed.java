@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
@@ -31,6 +32,7 @@ public class ResetTed extends LinearOpMode {
         hand_tilt = hardwareMap.get(Servo.class, "hand_tilt");
 
         arm_slide = hardwareMap.get(DcMotor.class, "arm_slide");
+        arm_slide.setDirection(DcMotorSimple.Direction.REVERSE);
 
 
 
@@ -48,7 +50,7 @@ public class ResetTed extends LinearOpMode {
 
     private void do_something() {
         while (!armsafetybutton.isPressed()) {
-            arm_slide.setPower(-0.5);
+            arm_slide.setPower(-0.25);
             if (armsafetybutton.isPressed()) {
                 break;
             }
