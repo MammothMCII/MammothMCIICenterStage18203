@@ -4,6 +4,7 @@ package org.firstinspires.ftc.teamcode;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -47,6 +48,7 @@ import java.util.List;
 
 
 @Autonomous(name= "VisionBack", group="autonomous")
+@Disabled
 
 public class VisionBack extends LinearOpMode {
     private ElapsedTime runtime = new ElapsedTime();
