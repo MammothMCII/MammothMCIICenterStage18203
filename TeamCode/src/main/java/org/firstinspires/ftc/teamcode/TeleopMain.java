@@ -94,8 +94,8 @@ public class TeleopMain extends LinearOpMode {
         toprightmotor.setDirection(DcMotorSimple.Direction.REVERSE);
         bottomrightmotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        bottom_grip.setPosition(0);
-        top_grip.setPosition(0.85);
+        bottom_grip.setPosition(0.4);
+        top_grip.setPosition(0);
 
         arm_slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -161,26 +161,26 @@ public class TeleopMain extends LinearOpMode {
 
 
 
-                if (gamepad1.left_bumper && !topToggle) {
-                    if (topOn == false) {top_grip.setPosition(0); topOn = true;}
-                    else {top_grip.setPosition(0.8);
+                if (gamepad1.right_bumper && !topToggle) {
+                    if (topOn == false) {top_grip.setPosition(.60); topOn = true;}
+                    else {top_grip.setPosition(0);
 
                         topOn = false;
                     }
                     topToggle = true;
                 }
-                else if (!gamepad1.left_bumper) topToggle = false;
+                else if (!gamepad1.right_bumper) topToggle = false;
 
 
-                if (gamepad1.right_bumper && !bottomToggle) {
-                    if (bottomOn == false) {bottom_grip.setPosition(0.80); bottomOn = true;}
-                    else {bottom_grip.setPosition(0);
+                if (gamepad1.left_bumper && !bottomToggle) {
+                    if (bottomOn == false) {bottom_grip.setPosition(0); bottomOn = true;}
+                    else {bottom_grip.setPosition(0.6);
 
                         bottomOn = false;
                     }
                     bottomToggle = true;
                 }
-                else if (!gamepad1.right_bumper) bottomToggle = false;
+                else if (!gamepad1.left_bumper) bottomToggle = false;
 
 
 
