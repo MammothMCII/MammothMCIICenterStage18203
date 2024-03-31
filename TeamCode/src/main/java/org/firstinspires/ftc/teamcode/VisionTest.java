@@ -157,7 +157,7 @@ public class VisionTest extends LinearOpMode {
         public class Close implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet){
-                topgrip.setPosition(0.8);
+                topgrip.setPosition(0);
                 return false;
             }
         }
@@ -167,7 +167,7 @@ public class VisionTest extends LinearOpMode {
         public class Open implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet){
-                topgrip.setPosition(0);
+                topgrip.setPosition(0.4);
                 return false;
             }
         }
@@ -186,7 +186,7 @@ public class VisionTest extends LinearOpMode {
         public class Close implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet){
-                bottomgrip.setPosition(0);
+                bottomgrip.setPosition(0.4);
                 return false;
             }
         }
@@ -196,7 +196,7 @@ public class VisionTest extends LinearOpMode {
         public class Open implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet){
-                bottomgrip.setPosition(0.8);
+                bottomgrip.setPosition(0);
                 return false;
             }
         }
@@ -286,7 +286,11 @@ public class VisionTest extends LinearOpMode {
 
         Pose2d startPoseRed = new Pose2d(-38.5, -63, Math.toRadians(90));
 
-        Pose2d startPoseBlue = new Pose2d(-32, 60, Math.toRadians(-90));
+        Pose2d startPoseBlue = new Pose2d(-32, 63, Math.toRadians(-90));
+
+        Pose2d startPoseRedBack = new Pose2d(9, -63, Math.toRadians(90));
+
+        Pose2d startPoseBlueBack = new Pose2d(17, 63, Math.toRadians(-90));
 
         if (side == 0 && color == 0){ //red front
             drive = new MecanumDrive(hardwareMap, startPoseRed);
@@ -295,13 +299,11 @@ public class VisionTest extends LinearOpMode {
             drive = new MecanumDrive(hardwareMap, startPoseBlue);
         }
 
-
-        //placeholder
-        if (side == 1 && color == 0){ //red back
-            drive = new MecanumDrive(hardwareMap, new Pose2d(-39, -63, Math.toRadians(90)));
+        else if (side == 1 && color == 0){ //red back
+            drive = new MecanumDrive(hardwareMap, startPoseRedBack);
         }
         else if (side == 1 && color == 1){ //blue back
-            drive = new MecanumDrive(hardwareMap, new Pose2d(-32, 63, Math.toRadians(-90)));
+            drive = new MecanumDrive(hardwareMap, startPoseBlueBack);
         }
 
 
@@ -315,15 +317,30 @@ public class VisionTest extends LinearOpMode {
                 .build();
 
         Action RedM_To_Tape = drive.actionBuilder(startPoseRed)
-                .splineToConstantHeading(new Vector2d(-43, -28), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(-38, -30), Math.toRadians(90), null, new ProfileAccelConstraint(-10, 10))
                 .build();
 
         Action RedR_To_Tape = drive.actionBuilder(startPoseRed)
-                .splineToConstantHeading(new Vector2d(-23, -32), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(-23, -32), Math.toRadians(0), null, new ProfileAccelConstraint(-10, 10))
                 .build();
 
 
         // red to wait pos
+        Action Red_to_waitL = drive.actionBuilder(new Pose2d(-46, -34, Math.toRadians(90)))
+                .lineToYConstantHeading(-50)
+                .splineToConstantHeading(new Vector2d(-58, -50), Math.toRadians(90), new TranslationalVelConstraint(10), new ProfileAccelConstraint(-10, 10))
+                .splineToConstantHeading(new Vector2d(-58, -24), Math.toRadians(90), null, new ProfileAccelConstraint(-10, 10))
+                .splineToSplineHeading(new Pose2d(-50, -9, Math.toRadians(0)), Math.toRadians(0), new TranslationalVelConstraint(50), new ProfileAccelConstraint(-10, 10))
+                .build();
+
+
+        Action Red_to_waitM = drive.actionBuilder(new Pose2d(-38, -30, Math.toRadians(90)))
+                .lineToYConstantHeading(-40)
+                .splineToConstantHeading(new Vector2d(-58, -40), Math.toRadians(90), new TranslationalVelConstraint(10), new ProfileAccelConstraint(-10, 10))
+                .splineToConstantHeading(new Vector2d(-58, -24), Math.toRadians(90), null, new ProfileAccelConstraint(-10, 10))
+                .splineToSplineHeading(new Pose2d(-50, -9, Math.toRadians(0)), Math.toRadians(0), new TranslationalVelConstraint(50), new ProfileAccelConstraint(-10, 10))
+                .build();
+
         Action Red_to_waitR = drive.actionBuilder(new Pose2d(-23, -32, Math.toRadians(90)))
                 .splineToConstantHeading(new Vector2d(-26, -33), Math.toRadians(180))
                 .splineToConstantHeading(new Vector2d(-60, -33), Math.toRadians(90))
@@ -331,19 +348,6 @@ public class VisionTest extends LinearOpMode {
                 .splineToSplineHeading(new Pose2d(-50, -9, Math.toRadians(0)), Math.toRadians(0))
                 .build();
 
-        Action Red_to_waitM = drive.actionBuilder(new Pose2d(-43, -28, Math.toRadians(90)))
-                .splineToConstantHeading(new Vector2d(-48, -50), Math.toRadians(180))
-                .splineToConstantHeading(new Vector2d(-60, -50), Math.toRadians(90))
-                .splineToConstantHeading(new Vector2d(-60, -24), Math.toRadians(90))
-                .splineToSplineHeading(new Pose2d(-50, -9, Math.toRadians(0)), Math.toRadians(0))
-                .build();
-
-        Action Red_to_waitL = drive.actionBuilder(new Pose2d(-46, -34, Math.toRadians(90)))
-                .lineToYConstantHeading(-50)
-                .splineToConstantHeading(new Vector2d(-58, -50), Math.toRadians(90), new TranslationalVelConstraint(10), new ProfileAccelConstraint(-10, 10))
-                .splineToConstantHeading(new Vector2d(-58, -24), Math.toRadians(90), null, new ProfileAccelConstraint(-10, 10))
-                .splineToSplineHeading(new Pose2d(-50, -9, Math.toRadians(0)), Math.toRadians(0), new TranslationalVelConstraint(50), new ProfileAccelConstraint(-10, 10))
-                .build();
 
         //red return
         Action Red_Return = drive.actionBuilder(new Pose2d(-50, -9, 0))
@@ -357,11 +361,11 @@ public class VisionTest extends LinearOpMode {
                 .build();
 
         Action Place_On_board_RedM = drive.actionBuilder(new Pose2d(40, -20, 0))
-                .splineToConstantHeading(new Vector2d(50, -31), 0)
+                .splineToConstantHeading(new Vector2d(50, -35), 0, null, new ProfileAccelConstraint(-10, 10))
                 .build();
 
         Action Place_On_board_RedR = drive.actionBuilder(new Pose2d(40, -20, 0))
-                .splineToConstantHeading(new Vector2d(50, -35), 0)
+                .splineToConstantHeading(new Vector2d(50, -42), 0, null, new ProfileAccelConstraint(-10, 10))
                 .build();
 
 
@@ -373,7 +377,8 @@ public class VisionTest extends LinearOpMode {
                 .build();
 
         Action Red_Place_returnR = drive.actionBuilder(new Pose2d(52, -31, 0))
-                .splineToConstantHeading(new Vector2d(35, -40), 0)
+                .lineToXConstantHeading(45)
+                .splineToConstantHeading(new Vector2d(35, -40), Math.toRadians(-90))
                 .splineToConstantHeading(new Vector2d(53, -60), 0)
                 .build();
 
@@ -381,67 +386,73 @@ public class VisionTest extends LinearOpMode {
         ///--------------------------------------------------------------------------------------------------
         // Blue R to tape
         Action BlueR_To_Tape = drive.actionBuilder(startPoseBlue)
-                .splineToConstantHeading(new Vector2d(-48, 33), Math.toRadians(180))
-                //.lineToXConstantHeading(-48)
-                //.lineToYConstantHeading(33)
+                .splineToConstantHeading(new Vector2d(-46, 34), Math.toRadians(-90), null, new ProfileAccelConstraint(-10, 10))
                 .build();
 
         Action BlueL_To_Tape = drive.actionBuilder(startPoseBlue)
-                .splineToConstantHeading(new Vector2d(-22, 32), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(-24, 32), Math.toRadians(0), null, new ProfileAccelConstraint(-10, 10))
                 .build();
 
         Action BlueM_To_Tape = drive.actionBuilder(startPoseBlue)
-                .splineToConstantHeading(new Vector2d(-39, 29), Math.toRadians(18))
-                //.lineToXConstantHeading(-39)
-                //.lineToYConstantHeading(29)
+                .splineToConstantHeading(new Vector2d(-38, 30), Math.toRadians(-90), null, new ProfileAccelConstraint(-10, 10))
                 .build();
 
 
         // Blue to wait pos
-        Action Blue_to_waitL = drive.actionBuilder(drive.pose)
-                .splineToConstantHeading(new Vector2d(-26, 34), 0)
-                .splineToConstantHeading(new Vector2d(-60, 34), Math.toRadians(-90))
+        Action Blue_to_waitL = drive.actionBuilder(new Pose2d(-24, 32, -90))
+                .splineToConstantHeading(new Vector2d(-26, 33), Math.toRadians(180))
+                .splineToConstantHeading(new Vector2d(-60, 33), Math.toRadians(-90))
                 .splineToConstantHeading(new Vector2d(-60, 24), Math.toRadians(-90))
                 .splineToSplineHeading(new Pose2d(-50, 9, Math.toRadians(0)), Math.toRadians(0))
                 .build();
 
-        Action Blue_to_wait = drive.actionBuilder(drive.pose)
-                .splineToConstantHeading(new Vector2d(-48, 50), 0)
-                .splineToConstantHeading(new Vector2d(-60, 50), Math.toRadians(-90))
-                .splineToConstantHeading(new Vector2d(-60, 24), Math.toRadians(-90))
-                .splineToSplineHeading(new Pose2d(-50, 9, Math.toRadians(0)), Math.toRadians(0))
+        Action Blue_to_waitM = drive.actionBuilder(new Pose2d(-38, 30, -90))
+                .lineToYConstantHeading(40)
+                .splineToConstantHeading(new Vector2d(-58, 40), Math.toRadians(-90), new TranslationalVelConstraint(10), new ProfileAccelConstraint(-10, 10))
+                .splineToConstantHeading(new Vector2d(-58, 24), Math.toRadians(-90), null, new ProfileAccelConstraint(-10, 10))
+                .splineToSplineHeading(new Pose2d(-50, 9, Math.toRadians(0)), Math.toRadians(0), new TranslationalVelConstraint(50), new ProfileAccelConstraint(-10, 10))
+                .build();
+
+        Action Blue_to_waitR = drive.actionBuilder(new Pose2d(-46, 34, -90))
+                .lineToYConstantHeading(50)
+                .splineToConstantHeading(new Vector2d(-58, 50), Math.toRadians(-90), new TranslationalVelConstraint(10), new ProfileAccelConstraint(-10, 10))
+                .splineToConstantHeading(new Vector2d(-58, 24), Math.toRadians(-90), null, new ProfileAccelConstraint(-10, 10))
+                .splineToSplineHeading(new Pose2d(-50, 9, Math.toRadians(0)), Math.toRadians(0), new TranslationalVelConstraint(50), new ProfileAccelConstraint(-10, 10))
                 .build();
 
         //Blue return
-        Action Blue_Return = drive.actionBuilder(drive.pose)
+        Action Blue_Return = drive.actionBuilder(new Pose2d(-50, 9, Math.toRadians(0)))
                 .splineToConstantHeading(new Vector2d(30, 9), 0)
                 .splineToConstantHeading(new Vector2d(40, 20), 0)
                 .build();
 
 
         //Blue board
-        Action Place_On_board_BlueR = drive.actionBuilder(drive.pose)
-                .splineToConstantHeading(new Vector2d(55, 19), 0)
+        Action Place_On_board_BlueR = drive.actionBuilder(new Pose2d(40, 20, 0))
+                .splineToConstantHeading(new Vector2d(50, 29), 0, null, new ProfileAccelConstraint(-10, 10))
                 .build();
 
-        Action Place_On_board_BlueM = drive.actionBuilder(drive.pose)
-                .splineToConstantHeading(new Vector2d(55, 28), 0)
+        Action Place_On_board_BlueM = drive.actionBuilder(new Pose2d(40, 20, 0))
+                .splineToConstantHeading(new Vector2d(50, 35), 0, null, new ProfileAccelConstraint(-10, 10))
                 .build();
 
-        Action Place_On_board_BlueL = drive.actionBuilder(drive.pose)
-                .splineToConstantHeading(new Vector2d(55, 35), 0)
+        Action Place_On_board_BlueL = drive.actionBuilder(new Pose2d(40, 20, 0))
+                .splineToConstantHeading(new Vector2d(50, 42), 0, null, new ProfileAccelConstraint(-10, 10))
                 .build();
+
 
 
         //park
-        Action Blue_Place_returnL = drive.actionBuilder(drive.pose)
-                .splineToConstantHeading(new Vector2d(35, 40), 0)
+        Action Blue_Place_returnL = drive.actionBuilder(new Pose2d(50, 31, 0))
+                .lineToXConstantHeading(45)
+                .splineToConstantHeading(new Vector2d(35, 40), Math.toRadians(90))
                 .splineToConstantHeading(new Vector2d(53, 60), 0)
                 .build();
 
-        Action Blue_Place_returnR = drive.actionBuilder(drive.pose)
-                .splineToConstantHeading(new Vector2d(35, 10), 0)
-                .splineToConstantHeading(new Vector2d(53, 7), 0)
+        Action Blue_Place_returnR = drive.actionBuilder(new Pose2d(50, 31, 0))
+                .lineToXConstantHeading(45)
+                .splineToConstantHeading(new Vector2d(35, 15), Math.toRadians(-90))
+                .splineToConstantHeading(new Vector2d(53, 10), 0)
                 .build();
 
         ///----------------------------------------------------------------------------------------------------
@@ -478,16 +489,48 @@ public class VisionTest extends LinearOpMode {
 
                  //blue side
                  if (color == 1) {
+
                      pos state = pos.left;
                      if (valMid == max) {
                          state = pos.middle;
                      } else if (valRight == max) {
                          state = pos.right;
                      }
+
+                     //front
+                     if (state == pos.left){
+                         PixelAction = BlueL_To_Tape;
+                         BackdropPlaceAction = Place_On_board_BlueL;
+                         ToWaitAction = Blue_to_waitL;
+                     }
+                     else if (state == pos.middle){
+                         PixelAction = BlueM_To_Tape;
+                         BackdropPlaceAction = Place_On_board_BlueM;
+                         ToWaitAction = Blue_to_waitM;
+                     }
+                     else if (state == pos.right){
+                         PixelAction = BlueR_To_Tape;
+                         BackdropPlaceAction = Place_On_board_BlueR;
+                         ToWaitAction = Blue_to_waitR;
+                     }
+
+                     ToBackdropAction = Blue_Return;
+
+
+                     if (end_pos == 0){
+                         ParkAction = Blue_Place_returnL;
+                     }
+                     else if (end_pos == 1) {
+                         ParkAction = Blue_Place_returnR;
+                     }
+
                  }
+
+
 
                  //red side
                  if (color == 0) {
+
                      pos state = pos.left;
                      if (valMidR == max) {
                         state = pos.middle;
@@ -495,6 +538,8 @@ public class VisionTest extends LinearOpMode {
                         state = pos.right;
                      }
 
+
+                     //front
                      if (state == pos.left){
                          PixelAction = RedL_To_Tape;
                          BackdropPlaceAction = Place_On_board_RedL;
