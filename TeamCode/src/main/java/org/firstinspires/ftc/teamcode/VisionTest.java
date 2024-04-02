@@ -306,7 +306,6 @@ public class VisionTest extends LinearOpMode {
 
 
 
-
         //build trajectories --------------------------------------------------------
 
         // red to tape
@@ -453,7 +452,84 @@ public class VisionTest extends LinearOpMode {
                 .splineToConstantHeading(new Vector2d(53, 10), 0)
                 .build();
 
-        ///----------------------------------------------------------------------------------------------------
+        //----------------------------------------------------------------------------------------------------
+        //backside specific
+
+        // red to tape
+        Action RedL_To_Tape_Back = drive.actionBuilder(startPoseRed)
+                .splineToConstantHeading(new Vector2d(0, -31), Math.toRadians(180))
+                .build();
+
+        Action RedM_To_Tape_Back = drive.actionBuilder(startPoseRed)
+                .lineToXConstantHeading(12)
+                .lineToYConstantHeading(-29)
+                .build();
+
+        Action RedR_To_Tape_Back = drive.actionBuilder(startPoseRed)
+                .splineToConstantHeading(new Vector2d(25, -34), Math.toRadians(0))
+                .build();
+
+
+        // red to wait pos
+        Action Red_to_waitR_Back = drive.actionBuilder(drive.pose)
+                //.splineToSplineHeading(new Pose2d(30, -45, Math.toRadians(0)), Math.toRadians(0))
+                .lineToXLinearHeading(30, Math.toRadians(0))
+                .lineToYLinearHeading(-45, Math.toRadians(0))
+                //.splineToSplineHeading(new Pose2d(58, -14, Math.toRadians(0)), Math.toRadians(0))
+                .build();
+
+        Action Red_to_wait_Back = drive.actionBuilder(drive.pose)
+                .lineToXConstantHeading(1)
+                .lineToYConstantHeading( -32.5)
+                .splineToConstantHeading(new Vector2d(20, -33), Math.toRadians(0))
+                //.splineToSplineHeading(new Pose2d(58, -13, Math.toRadians(0)), Math.toRadians(0))
+                .build();
+
+        //red return
+        Action Red_Return_Back = drive.actionBuilder(drive.pose)
+                //.lineToConstantHeading(new Vector2d(30, -9))
+                .splineToLinearHeading(new Pose2d(40, -25, Math.toRadians(0)), 0)
+                .build();
+
+
+
+        ///--------------------------------------------------------------------------------------------------
+        // Blue R to tape
+        Action BlueR_To_Tape_Back = drive.actionBuilder(startPoseBlue)
+                .splineToConstantHeading(new Vector2d(1, 32), Math.toRadians(180))
+                .build();
+
+        Action BlueL_To_Tape_Back = drive.actionBuilder(startPoseBlue)
+                .splineToConstantHeading(new Vector2d(26, 33), Math.toRadians(0))
+                .build();
+
+        Action BlueM_To_Tape_Back = drive.actionBuilder(startPoseBlue)
+                .splineToConstantHeading(new Vector2d(12, 28), 0)
+                .build();
+
+
+
+        // Blue to wait pos
+        Action Blue_to_waitL_Back = drive.actionBuilder(drive.pose)
+                //.lineToConstantHeading(new Vector2d(30, 45))
+                //.splineToSplineHeading(new Pose2d(58, 13, Math.toRadians(0)), Math.toRadians(0))
+                .splineToLinearHeading(new Pose2d(30, 45, Math.toRadians(0)), 0)
+                .build();
+
+        Action Blue_to_wait = drive.actionBuilder(drive.pose)
+                .splineToConstantHeading(new Vector2d(1, 32.5), 0)
+                .splineToConstantHeading(new Vector2d(20, 32.5), Math.toRadians(0))
+
+                //.splineToSplineHeading(new Pose2d(58, 13, Math.toRadians(0)), Math.toRadians(0))
+                .build();
+
+        //Blue return
+        Action Blue_Return_Back = drive.actionBuilder(drive.pose)
+                //.lineToConstantHeading(new Vector2d(30, 9))
+                //.splineToConstantHeading(new Vector2d(40, 20), 0)
+
+                .splineToLinearHeading(new Pose2d(40, 25, Math.toRadians(0)), 0)
+                .build();
 
 
 
@@ -484,35 +560,51 @@ public class VisionTest extends LinearOpMode {
 
                 if (isStopRequested()) return;
 
+                pos state = pos.left;
+                if (valMid == max || valMidR == max) {
+                    state = pos.middle;
+                } else if (valRight == max || valRightR == max) {
+                    state = pos.right;
+                }
 
                  //blue side
                  if (color == 1) {
 
-                     pos state = pos.left;
-                     if (valMid == max) {
-                         state = pos.middle;
-                     } else if (valRight == max) {
-                         state = pos.right;
-                     }
+                     if (side == 0) {
 
-                     //front
-                     if (state == pos.left){
-                         PixelAction = BlueL_To_Tape;
-                         BackdropPlaceAction = Place_On_board_BlueL;
-                         ToWaitAction = Blue_to_waitL;
-                     }
-                     else if (state == pos.middle){
-                         PixelAction = BlueM_To_Tape;
-                         BackdropPlaceAction = Place_On_board_BlueM;
-                         ToWaitAction = Blue_to_waitM;
-                     }
-                     else if (state == pos.right){
-                         PixelAction = BlueR_To_Tape;
-                         BackdropPlaceAction = Place_On_board_BlueR;
-                         ToWaitAction = Blue_to_waitR;
-                     }
+                         //front
+                         if (state == pos.left) {
+                             PixelAction = BlueL_To_Tape;
+                             BackdropPlaceAction = Place_On_board_BlueL;
+                             ToWaitAction = Blue_to_waitL;
+                         } else if (state == pos.middle) {
+                             PixelAction = BlueM_To_Tape;
+                             BackdropPlaceAction = Place_On_board_BlueM;
+                             ToWaitAction = Blue_to_waitM;
+                         } else if (state == pos.right) {
+                             PixelAction = BlueR_To_Tape;
+                             BackdropPlaceAction = Place_On_board_BlueR;
+                             ToWaitAction = Blue_to_waitR;
+                         }
 
-                     ToBackdropAction = Blue_Return;
+                         ToBackdropAction = Blue_Return;
+                     }
+                     else {
+                         //backside
+                         if (state == pos.left) {
+                             PixelAction = BlueL_To_Tape;
+                             BackdropPlaceAction = Place_On_board_BlueL;
+                             ToWaitAction = Blue_to_waitL;
+                         } else if (state == pos.middle) {
+                             PixelAction = BlueM_To_Tape;
+                             BackdropPlaceAction = Place_On_board_BlueM;
+                             ToWaitAction = Blue_to_waitM;
+                         } else if (state == pos.right) {
+                             PixelAction = BlueR_To_Tape;
+                             BackdropPlaceAction = Place_On_board_BlueR;
+                             ToWaitAction = Blue_to_waitR;
+                         }
+                     }
 
 
                      if (end_pos == 0){
@@ -525,48 +617,56 @@ public class VisionTest extends LinearOpMode {
                  }
 
 
-
                  //red side
                  if (color == 0) {
 
-                     pos state = pos.left;
-                     if (valMidR == max) {
-                        state = pos.middle;
-                     } else if (valRightR == max) {
-                        state = pos.right;
+                     if (side == 0) {
+
+                         //front
+                         if (state == pos.left) {
+                             PixelAction = RedL_To_Tape;
+                             BackdropPlaceAction = Place_On_board_RedL;
+                             ToWaitAction = Red_to_waitL;
+                         } else if (state == pos.middle) {
+                             PixelAction = RedM_To_Tape;
+                             BackdropPlaceAction = Place_On_board_RedM;
+                             ToWaitAction = Red_to_waitM;
+                         } else if (state == pos.right) {
+                             PixelAction = RedR_To_Tape;
+                             BackdropPlaceAction = Place_On_board_RedR;
+                             ToWaitAction = Red_to_waitR;
+                         }
+
+                         ToBackdropAction = Red_Return;
+                     }
+                     else{
+                         if (state == pos.left) {
+                             PixelAction = RedL_To_Tape;
+                             BackdropPlaceAction = Place_On_board_RedL;
+                             ToWaitAction = Red_to_waitL;
+                         } else if (state == pos.middle) {
+                             PixelAction = RedM_To_Tape;
+                             BackdropPlaceAction = Place_On_board_RedM;
+                             ToWaitAction = Red_to_waitM;
+                         } else if (state == pos.right) {
+                             PixelAction = RedR_To_Tape;
+                             BackdropPlaceAction = Place_On_board_RedR;
+                             ToWaitAction = Red_to_waitR;
+                         }
+
                      }
 
 
-                     //front
-                     if (state == pos.left){
-                         PixelAction = RedL_To_Tape;
-                         BackdropPlaceAction = Place_On_board_RedL;
-                         ToWaitAction = Red_to_waitL;
-                     }
-                     else if (state == pos.middle){
-                         PixelAction = RedM_To_Tape;
-                         BackdropPlaceAction = Place_On_board_RedM;
-                         ToWaitAction = Red_to_waitM;
-                     }
-                     else if (state == pos.right){
-                         PixelAction = RedR_To_Tape;
-                         BackdropPlaceAction = Place_On_board_RedR;
-                         ToWaitAction = Red_to_waitR;
-                     }
-
-                     ToBackdropAction = Red_Return;
-
-
-                     if (end_pos == 0){
+                     if (end_pos == 0) {
                          ParkAction = Red_Place_returnL;
-                     }
-                     else if (end_pos == 1) {
+                     } else if (end_pos == 1) {
                          ParkAction = Red_Place_returnR;
                      }
 
+
                  }
 
-                //run set cations
+                //run set actions
                 Actions.runBlocking(
                         new SequentialAction(
 
