@@ -456,80 +456,87 @@ public class VisionTest extends LinearOpMode {
         //backside specific
 
         // red to tape
-        Action RedL_To_Tape_Back = drive.actionBuilder(startPoseRed)
-                .splineToConstantHeading(new Vector2d(0, -31), Math.toRadians(180))
+        Action RedL_To_Tape_Back = drive.actionBuilder(startPoseRedBack)
+                .splineToConstantHeading(new Vector2d(0, -36), Math.toRadians(180), null, new ProfileAccelConstraint(-10, 10))
                 .build();
 
-        Action RedM_To_Tape_Back = drive.actionBuilder(startPoseRed)
-                .lineToXConstantHeading(12)
-                .lineToYConstantHeading(-29)
+        Action RedM_To_Tape_Back = drive.actionBuilder(startPoseRedBack)
+                .splineToConstantHeading(new Vector2d(12, -32), Math.toRadians(90), null, new ProfileAccelConstraint(-10, 10))
                 .build();
 
-        Action RedR_To_Tape_Back = drive.actionBuilder(startPoseRed)
-                .splineToConstantHeading(new Vector2d(25, -34), Math.toRadians(0))
+        Action RedR_To_Tape_Back = drive.actionBuilder(startPoseRedBack)
+                .splineToConstantHeading(new Vector2d(23, -34), Math.toRadians(90), null, new ProfileAccelConstraint(-10, 10))
                 .build();
 
 
         // red to wait pos
-        Action Red_to_waitR_Back = drive.actionBuilder(drive.pose)
-                //.splineToSplineHeading(new Pose2d(30, -45, Math.toRadians(0)), Math.toRadians(0))
-                .lineToXLinearHeading(30, Math.toRadians(0))
-                .lineToYLinearHeading(-45, Math.toRadians(0))
-                //.splineToSplineHeading(new Pose2d(58, -14, Math.toRadians(0)), Math.toRadians(0))
-                .build();
-
         Action Red_to_wait_Back = drive.actionBuilder(drive.pose)
-                .lineToXConstantHeading(1)
-                .lineToYConstantHeading( -32.5)
-                .splineToConstantHeading(new Vector2d(20, -33), Math.toRadians(0))
-                //.splineToSplineHeading(new Pose2d(58, -13, Math.toRadians(0)), Math.toRadians(0))
+                .waitSeconds(1)
                 .build();
 
-        //red return
-        Action Red_Return_Back = drive.actionBuilder(drive.pose)
-                //.lineToConstantHeading(new Vector2d(30, -9))
-                .splineToLinearHeading(new Pose2d(40, -25, Math.toRadians(0)), 0)
+        Action Red_ReturnL_Back = drive.actionBuilder(new Pose2d(0, -36, Math.toRadians(90)))
+                .lineToYConstantHeading(-36)
+                .splineToConstantHeading(new Vector2d(20, -36), Math.toRadians(0))
+                .splineToLinearHeading(new Pose2d(40, -20, 0), Math.toRadians(90))
                 .build();
+
+        Action Red_ReturnM_Back = drive.actionBuilder(new Pose2d(12, -29, Math.toRadians(90)))
+                .lineToYConstantHeading(-36)
+                .splineToConstantHeading(new Vector2d(25, -36), 0)
+                .splineToLinearHeading(new Pose2d(40, -20, 0), 0)
+                .build();
+
+        Action Red_ReturnR_Back = drive.actionBuilder(new Pose2d(23, -34, Math.toRadians(90)))
+                .lineToYConstantHeading(-36)
+                .splineToConstantHeading(new Vector2d(30, -36), 0)
+                .splineToLinearHeading(new Pose2d(40, -20, 0), 0)
+                .build();
+
 
 
 
         ///--------------------------------------------------------------------------------------------------
         // Blue R to tape
-        Action BlueR_To_Tape_Back = drive.actionBuilder(startPoseBlue)
+        Action BlueR_To_Tape_Back = drive.actionBuilder(startPoseBlueBack)
                 .splineToConstantHeading(new Vector2d(1, 32), Math.toRadians(180))
                 .build();
 
-        Action BlueL_To_Tape_Back = drive.actionBuilder(startPoseBlue)
-                .splineToConstantHeading(new Vector2d(26, 33), Math.toRadians(0))
+        Action BlueL_To_Tape_Back = drive.actionBuilder(startPoseBlueBack)
+                .splineToConstantHeading(new Vector2d(24, 33), Math.toRadians(0))
                 .build();
 
-        Action BlueM_To_Tape_Back = drive.actionBuilder(startPoseBlue)
-                .splineToConstantHeading(new Vector2d(12, 28), 0)
+        Action BlueM_To_Tape_Back = drive.actionBuilder(startPoseBlueBack)
+                .splineToConstantHeading(new Vector2d(12, 32), 0)
                 .build();
 
 
 
         // Blue to wait pos
-        Action Blue_to_waitL_Back = drive.actionBuilder(drive.pose)
-                //.lineToConstantHeading(new Vector2d(30, 45))
-                //.splineToSplineHeading(new Pose2d(58, 13, Math.toRadians(0)), Math.toRadians(0))
-                .splineToLinearHeading(new Pose2d(30, 45, Math.toRadians(0)), 0)
+        Action Blue_to_wait_Back = drive.actionBuilder(drive.pose)
+                .waitSeconds(1)
                 .build();
 
-        Action Blue_to_wait = drive.actionBuilder(drive.pose)
-                .splineToConstantHeading(new Vector2d(1, 32.5), 0)
-                .splineToConstantHeading(new Vector2d(20, 32.5), Math.toRadians(0))
 
-                //.splineToSplineHeading(new Pose2d(58, 13, Math.toRadians(0)), Math.toRadians(0))
-                .build();
 
         //Blue return
-        Action Blue_Return_Back = drive.actionBuilder(drive.pose)
-                //.lineToConstantHeading(new Vector2d(30, 9))
-                //.splineToConstantHeading(new Vector2d(40, 20), 0)
-
-                .splineToLinearHeading(new Pose2d(40, 25, Math.toRadians(0)), 0)
+        Action Blue_ReturnL_Back = drive.actionBuilder(new Pose2d(23, 33, Math.toRadians(-90)))
+                .lineToYConstantHeading(36)
+                .splineToConstantHeading(new Vector2d(30, 36), 0)
+                .splineToLinearHeading(new Pose2d(40, 20, 0), 0)
                 .build();
+
+        Action Blue_ReturnM_Back = drive.actionBuilder(new Pose2d(12, 32, Math.toRadians(-90)))
+                .lineToYConstantHeading(36)
+                .splineToConstantHeading(new Vector2d(25, 36), 0)
+                .splineToLinearHeading(new Pose2d(40, 20, 0), 0)
+                .build();
+
+        Action Blue_ReturnR_Back = drive.actionBuilder(new Pose2d(1, 32, Math.toRadians(-90)))
+                .lineToYConstantHeading(36)
+                .splineToConstantHeading(new Vector2d(20, 36), Math.toRadians(0))
+                .splineToLinearHeading(new Pose2d(40, 20, 0), Math.toRadians(-90))
+                .build();
+
 
 
 
@@ -589,21 +596,24 @@ public class VisionTest extends LinearOpMode {
 
                          ToBackdropAction = Blue_Return;
                      }
+
+
                      else {
                          //backside
                          if (state == pos.left) {
-                             PixelAction = BlueL_To_Tape;
+                             PixelAction = BlueL_To_Tape_Back;
                              BackdropPlaceAction = Place_On_board_BlueL;
-                             ToWaitAction = Blue_to_waitL;
+                             ToBackdropAction = Blue_ReturnL_Back;
                          } else if (state == pos.middle) {
-                             PixelAction = BlueM_To_Tape;
+                             PixelAction = BlueM_To_Tape_Back;
                              BackdropPlaceAction = Place_On_board_BlueM;
-                             ToWaitAction = Blue_to_waitM;
+                             ToBackdropAction = Blue_ReturnM_Back;
                          } else if (state == pos.right) {
-                             PixelAction = BlueR_To_Tape;
+                             PixelAction = BlueR_To_Tape_Back;
                              BackdropPlaceAction = Place_On_board_BlueR;
-                             ToWaitAction = Blue_to_waitR;
+                             ToBackdropAction = Blue_ReturnR_Back;
                          }
+                         ToWaitAction = Blue_to_wait_Back;
                      }
 
 
@@ -639,21 +649,24 @@ public class VisionTest extends LinearOpMode {
 
                          ToBackdropAction = Red_Return;
                      }
-                     else{
+
+
+                     else{ //backside
                          if (state == pos.left) {
-                             PixelAction = RedL_To_Tape;
+                             PixelAction = RedL_To_Tape_Back;
                              BackdropPlaceAction = Place_On_board_RedL;
-                             ToWaitAction = Red_to_waitL;
+                             ToBackdropAction = Red_ReturnL_Back;
                          } else if (state == pos.middle) {
-                             PixelAction = RedM_To_Tape;
+                             PixelAction = RedM_To_Tape_Back;
                              BackdropPlaceAction = Place_On_board_RedM;
-                             ToWaitAction = Red_to_waitM;
+                             ToBackdropAction = Red_ReturnM_Back;
                          } else if (state == pos.right) {
-                             PixelAction = RedR_To_Tape;
+                             PixelAction = RedR_To_Tape_Back;
                              BackdropPlaceAction = Place_On_board_RedR;
-                             ToWaitAction = Red_to_waitR;
+                             ToBackdropAction = Red_ReturnR_Back;
                          }
 
+                         ToWaitAction = Red_to_wait_Back;
                      }
 
 
