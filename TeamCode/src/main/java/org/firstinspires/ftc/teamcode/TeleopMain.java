@@ -96,6 +96,8 @@ public class TeleopMain extends LinearOpMode {
 
         bottom_grip.setPosition(0.4);
         top_grip.setPosition(0);
+        winch_release.setPosition(0.4);
+
 
         arm_slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -201,11 +203,16 @@ public class TeleopMain extends LinearOpMode {
 
                 }
 
+                if (gamepad1.touchpad) {
+                    bottom_grip.setPosition(0);
+                    top_grip.setPosition(1);
+                }
+
 
 
 
                 if (gamepad1.dpad_right && !planeToggle) {
-                    if (planeOn == false) {planeLauncher.setPosition(1); planeOn = true;}
+                    if (planeOn == false) {planeLauncher.setPosition(0.5); planeOn = true;}
                     else {planeLauncher.setPosition(0);
 
                         planeOn = false;
