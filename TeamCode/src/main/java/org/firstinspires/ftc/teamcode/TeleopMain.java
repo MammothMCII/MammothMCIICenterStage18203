@@ -94,13 +94,12 @@ public class TeleopMain extends LinearOpMode {
         toprightmotor.setDirection(DcMotorSimple.Direction.REVERSE);
         bottomrightmotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        bottom_grip.setPosition(0.4);
-        top_grip.setPosition(0);
-        winch_release.setPosition(0.4);
+        bottom_grip.setPosition(0.38);
+        top_grip.setPosition(0.11);
+        winch_release.setPosition(1);
 
-
+        hand_tilt.setPosition(0.48);
         arm_slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
 
         waitForStart();
         if (opModeIsActive()) {
@@ -152,8 +151,8 @@ public class TeleopMain extends LinearOpMode {
 
 
                 if (gamepad1.dpad_left && !winchToggle) {
-                    if (winchOn == false) {winch_release.setPosition(1); winchOn = true;}
-                    else {winch_release.setPosition(0.4);
+                    if (winchOn == false) {winch_release.setPosition(0.4); winchOn = true;}
+                    else {winch_release.setPosition(1);
 
                         winchOn = false;
                     }
@@ -165,7 +164,7 @@ public class TeleopMain extends LinearOpMode {
 
                 if (gamepad1.left_bumper && !topToggle) {
                     if (topOn == false) {top_grip.setPosition(.60); topOn = true;}
-                    else {top_grip.setPosition(0);
+                    else {top_grip.setPosition(0.11);
 
                         topOn = false;
                     }
@@ -176,7 +175,7 @@ public class TeleopMain extends LinearOpMode {
 
                 if (gamepad1.right_bumper && !bottomToggle) {
                     if (bottomOn == false) {bottom_grip.setPosition(0); bottomOn = true;}
-                    else {bottom_grip.setPosition(0.6);
+                    else {bottom_grip.setPosition(0.38);
 
                         bottomOn = false;
                     }
