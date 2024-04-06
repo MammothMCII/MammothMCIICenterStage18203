@@ -163,7 +163,8 @@ public class TeleopMain extends LinearOpMode {
 
 
                 if (gamepad1.left_bumper && !topToggle) {
-                    if (topOn == false) {top_grip.setPosition(.60); topOn = true;}
+                    if (topOn == false && tiltOn == false) {top_grip.setPosition(.60); topOn = true;}
+                    if (topOn == false && tiltOn == true) {top_grip.setPosition(0.15);
                     else {top_grip.setPosition(0.11);
 
                         topOn = false;
@@ -174,7 +175,8 @@ public class TeleopMain extends LinearOpMode {
 
 
                 if (gamepad1.right_bumper && !bottomToggle) {
-                    if (bottomOn == false) {bottom_grip.setPosition(0); bottomOn = true;}
+                    if (bottomOn == false && tiltOn == false) {bottom_grip.setPosition(0); bottomOn = true;}
+                    if (bottomOn == false && tiltOn == true) {bottom_grip.setPosition(0.3);
                     else {bottom_grip.setPosition(0.38);
 
                         bottomOn = false;
