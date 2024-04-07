@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 @Autonomous(name = "ResetTed")
 
@@ -43,15 +44,18 @@ public class ResetTed extends LinearOpMode {
             hand_tilt.setPosition(0.5);
 
             sleep(1000);
-            do_something();
+            resetarm();
         }
     }
 
 
-    private void do_something() {
-        while (!armsafetybutton.isPressed()) {
-            arm_slide.setPower(-0.25);
-            if (armsafetybutton.isPressed()) {
+    private void resetarm() {
+        ElapsedTime safetytimer = new ElapsedTime();
+        safetytimer.reset();
+        while (!armsafetybutton.isPressed() && safetytimer.milliseconds() < 1000) {
+            arm_slide.setPower(-1);
+            if (armsafetybutton.isPressed() | safetytimer.milliseconds() >= 1000) {
+                arm_slide.setPower(0);
                 break;
             }
         }

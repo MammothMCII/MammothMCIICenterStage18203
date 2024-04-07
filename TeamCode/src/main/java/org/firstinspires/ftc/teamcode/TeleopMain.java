@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.checkerframework.checker.units.qual.A;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
@@ -71,6 +72,12 @@ public class TeleopMain extends LinearOpMode {
         boolean tiltToggle = false;
         boolean tiltOn = false;
 
+        int mode = 0;
+        boolean mode1toggle = false;
+        boolean mode2toggle = false;
+
+        ElapsedTime mode0timer = new ElapsedTime();
+        boolean tiltup = false;
         //initAprilTag();
 
         topleftmotor = hardwareMap.get(DcMotor.class, "top left motor");
@@ -160,42 +167,83 @@ public class TeleopMain extends LinearOpMode {
                 }
                 else if (!gamepad1.dpad_left) winchToggle = false;
 
-
-
-                if (gamepad1.left_bumper && !topToggle) {
-                    if (topOn == false && tiltOn == false) {top_grip.setPosition(.40); topOn = true;}
-                    else if (topOn == false && tiltOn == true) {top_grip.setPosition(0.25);  topOn = false;}
-                    else if (topOn == true) {top_grip.setPosition(0.11);
-
-                        topOn = false;
+                //mode 1 pickup toggle
+                if (gamepad1.right_bumper && !mode1toggle) {
+                    if (mode == 0) {
+                        top_grip.setPosition(.40);
+                        bottom_grip.setPosition(0.1);
+                        hand_tilt.setPosition(0.48);
+                        mode = 1;
                     }
-                    topToggle = true;
-                }
-                else if (!gamepad1.left_bumper) topToggle = false;
-
-
-                if (gamepad1.right_bumper && !bottomToggle) {
-                    if (bottomOn == false && tiltOn == false) {bottom_grip.setPosition(0.1); bottomOn = true;}
-                    else if (bottomOn == false && tiltOn == true) {bottom_grip.setPosition(0.23); bottomOn = false;}
-                    else if (bottomOn == true) {bottom_grip.setPosition(0.38);
-
-                        bottomOn = false;
+                    else if (mode == 1) {
+                        top_grip.setPosition(.11);
+                        bottom_grip.setPosition(0.38);
+                        mode0timer.reset();
+                        tiltup = true;
+                        mode = 0;
                     }
-                    bottomToggle = true;
+                    mode1toggle = true;
                 }
-                else if (!gamepad1.right_bumper) bottomToggle = false;
+                else if (!gamepad1.right_bumper) mode1toggle = false;
+
+                //delay for hand tilt after pickup
+                if (mode0timer.milliseconds() >= 300 && tiltup == true) {
+                    hand_tilt.setPosition(0);
+                    tiltup = false;
+                }
+
+                if (gamepad1.y && !mode2toggle) {
+                    if (mode == 0) {
 
 
 
-                if (gamepad1.y && !tiltToggle) {
-                    if (tiltOn == false) {hand_tilt.setPosition(0.2); tiltOn = true;}
-                    else {hand_tilt.setPosition(0.48);
-
-                        tiltOn = false;
+                        mode = 2;
                     }
-                    tiltToggle = true;
+                    else if (mode == 2){
+                        hand_tilt.setPosition(0.48);
+
+                        mode = 0;
+                    }
+                    mode2toggle = true;
                 }
-                else if (!gamepad1.y) tiltToggle = false;
+                else if (!gamepad1.y) mode2toggle = false;
+
+//                if (gamepad1.left_bumper && !topToggle) {
+//                    if (topOn == false && tiltOn == false) {top_grip.setPosition(.40); topOn = true;}
+//                    else if (topOn == false && tiltOn == true) {top_grip.setPosition(0.25);  topOn = false;}
+//                    else if (topOn == true) {top_grip.setPosition(0.11);
+//
+//                        topOn = false;
+//                    }
+//                    topToggle = true;
+//                }
+//                else if (!gamepad1.left_bumper) topToggle = false;
+//
+//
+//                if (gamepad1.right_bumper && !bottomToggle) {
+//                    if (bottomOn == false && tiltOn == false) {bottom_grip.setPosition(0.1); bottomOn = true;}
+//                    else if (bottomOn == false && tiltOn == true) {bottom_grip.setPosition(0.23); bottomOn = false;}
+//                    else if (bottomOn == true) {bottom_grip.setPosition(0.38);
+//
+//                        bottomOn = false;
+//                    }
+//                    bottomToggle = true;
+//                }
+//                else if (!gamepad1.right_bumper) bottomToggle = false;
+
+
+
+//                if (gamepad1.y && !tiltToggle) {
+//                    if (tiltOn == false) {hand_tilt.setPosition(0.2); tiltOn = true;}
+//                    else {hand_tilt.setPosition(0.48);
+//
+//                        tiltOn = false;
+//                    }
+//                    tiltToggle = true;
+//                }
+//                else if (!gamepad1.y) tiltToggle = false;
+
+
 
 
                 //wiggle
@@ -236,7 +284,18 @@ public class TeleopMain extends LinearOpMode {
         //visionPortal.close();
     }
 
-
+    private void resetarm() {
+        
+        ElapsedTime safetytimer = new ElapsedTime();
+        safetytimer.reset();
+        while (!armsafetybutton.isPressed() && safetytimer.milliseconds() < 1000) {
+            arm_slide.setPower(-1);
+            if (armsafetybutton.isPressed() | safetytimer.milliseconds() >= 1000) {
+                arm_slide.setPower(0);
+                break;
+            }
+        }
+    }
     public void wiggle() {
         int frequency = 15;
         arm_slide.setPower(-1);
