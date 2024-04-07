@@ -75,9 +75,11 @@ public class TeleopMain extends LinearOpMode {
         int mode = 0;
         boolean mode1toggle = false;
         boolean mode2toggle = false;
+        boolean godownonce = false;
 
         ElapsedTime mode0timer = new ElapsedTime();
         boolean tiltup = false;
+
         //initAprilTag();
 
         topleftmotor = hardwareMap.get(DcMotor.class, "top left motor");
@@ -101,6 +103,7 @@ public class TeleopMain extends LinearOpMode {
         toprightmotor.setDirection(DcMotorSimple.Direction.REVERSE);
         bottomrightmotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
+
         bottom_grip.setPosition(0.38);
         top_grip.setPosition(0.11);
         winch_release.setPosition(1);
@@ -112,6 +115,12 @@ public class TeleopMain extends LinearOpMode {
         if (opModeIsActive()) {
             while (opModeIsActive()) {
                 //telemetryAprilTag();
+
+                //reset arm and motor positon
+                if (godownonce == false) {
+                    resetarm();
+                    godownonce = true;
+                }
 
                 telemetry.update();
 
@@ -194,14 +203,10 @@ public class TeleopMain extends LinearOpMode {
 
                 if (gamepad1.y && !mode2toggle) {
                     if (mode == 0) {
-
-
-
                         mode = 2;
                     }
                     else if (mode == 2){
-                        hand_tilt.setPosition(0.48);
-
+                        resetarm();
                         mode = 0;
                     }
                     mode2toggle = true;
@@ -257,9 +262,6 @@ public class TeleopMain extends LinearOpMode {
                     top_grip.setPosition(1);
                 }
 
-
-
-
                 if (gamepad1.dpad_right && !planeToggle) {
                     if (planeOn == false) {planeLauncher.setPosition(0.5); planeOn = true;}
                     else {planeLauncher.setPosition(0);
@@ -284,17 +286,20 @@ public class TeleopMain extends LinearOpMode {
         //visionPortal.close();
     }
 
-    private void resetarm() {
-        
-        ElapsedTime safetytimer = new ElapsedTime();
-        safetytimer.reset();
-        while (!armsafetybutton.isPressed() && safetytimer.milliseconds() < 1000) {
-            arm_slide.setPower(-1);
-            if (armsafetybutton.isPressed() | safetytimer.milliseconds() >= 1000) {
-                arm_slide.setPower(0);
-                break;
+
+
+    public void resetarm() {
+        if (!armsafetybutton.isPressed()) {
+            ElapsedTime safetytimer = new ElapsedTime();
+            safetytimer.reset();
+            while (!armsafetybutton.isPressed() && safetytimer.milliseconds() <= 1000) {
+                arm_slide.setPower(1);
+                if (armsafetybutton.isPressed() || safetytimer.milliseconds() >= 1000) {
+                    arm_slide.setPower(0);
+                }
             }
         }
+
     }
     public void wiggle() {
         int frequency = 15;
