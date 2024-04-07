@@ -4,6 +4,10 @@ import static androidx.core.math.MathUtils.clamp;
 
 import android.util.Size;
 
+import androidx.annotation.NonNull;
+
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -71,16 +75,16 @@ public class TeleopMain extends LinearOpMode {
         boolean bottomOn = false;
         boolean tiltToggle = false;
         boolean tiltOn = false;
+        boolean onepixeltoggle = false;
+        int pixels_held = 0;
+        boolean dropToggle = false;
 
-        int mode = 0;
+        int mode = 2;
         boolean mode1toggle = false;
         boolean mode2toggle = false;
 
         ElapsedTime mode0timer = new ElapsedTime();
         boolean tiltup = false;
-
-        ElapsedTime mode2timer = new ElapsedTime();
-        boolean liftup = false;
 
         //initAprilTag();
 
@@ -139,7 +143,7 @@ public class TeleopMain extends LinearOpMode {
                     winch.setPower(0);
                 }
 
-                if (!liftup && (mode == 2 || gamepad1.left_bumper)) {
+                if (mode == 2 || gamepad1.left_bumper) {
                     arm_power = gamepad1.left_stick_y;
                 }
                 if (arm_power > 0.4) {
@@ -148,20 +152,26 @@ public class TeleopMain extends LinearOpMode {
                 else if (arm_power < -0.4) {
                     clamp(arm_power, -1, -0.4);
                 }
-                else if (!liftup){
+                else {
                     arm_power = 0;
                 }
 
-                if (armsafetybutton.isPressed() && !liftup) {
+                if (armsafetybutton.isPressed()) {
                     arm_slide.setPower(Math.min(Math.max(arm_power, -1), 0));
                 }
-                else if(armlimitbutton.isPressed() && !liftup) {
+                else if(armlimitbutton.isPressed()) {
                     arm_slide.setPower((Math.min(Math.max(arm_power, 0), -1)));
                 }
-                else if (!liftup){
+                else {
                     arm_slide.setPower(arm_power);
                 }
 
+
+                if (gamepad1.b && !onepixeltoggle && mode == 1) {
+                    LiftUp(.5,.25);
+                    onepixeltoggle = true;
+                }
+                else if (!gamepad1.b) onepixeltoggle = false;
 
                 if (gamepad1.dpad_left && !winchToggle) {
                     if (!winchOn) {winch_release.setPosition(0.4); winchOn = true;}
@@ -173,12 +183,15 @@ public class TeleopMain extends LinearOpMode {
                 }
                 else if (!gamepad1.dpad_left) winchToggle = false;
 
+
+
                 //mode 1 pickup toggle
                 if (gamepad1.right_bumper && !mode1toggle) {
                     if (mode == 0) {
                         top_grip.setPosition(.40);
                         bottom_grip.setPosition(0.1);
                         hand_tilt.setPosition(0.48);
+                        pixels_held = 0;
                         mode = 1;
                     }
                     else if (mode == 1) {
@@ -186,6 +199,7 @@ public class TeleopMain extends LinearOpMode {
                         bottom_grip.setPosition(0.38);
                         mode0timer.reset();
                         tiltup = true;
+                        pixels_held = 2;
                         mode = 0;
                     }
                     mode1toggle = true;
@@ -198,11 +212,23 @@ public class TeleopMain extends LinearOpMode {
                     tiltup = false;
                 }
 
+                if (gamepad1.right_bumper && !dropToggle && mode == 2) {
+                    if (pixels_held == 1) {
+                        top_grip.setPosition(.3);
+                        pixels_held = 0;
+                    }
+                    else if (pixels_held == 2) {
+                        bottom_grip.setPosition(0.2);
+                        pixels_held = 1;
+                    }
+                    dropToggle = true;
+                }
+                else if (!gamepad1.right_bumper) dropToggle = false;
+
                 if (gamepad1.y && !mode2toggle) {
                     if (mode == 0) {
                         hand_tilt.setPosition(0.2);
-                        mode2timer.reset();
-                        liftup = true;
+                        LiftUp(10, 1);
                         mode = 2;
                     }
                     else if (mode == 2) {
@@ -215,51 +241,6 @@ public class TeleopMain extends LinearOpMode {
                     mode2toggle = true;
                 }
                 else if (!gamepad1.y) mode2toggle = false;
-
-                while (mode2timer.milliseconds() < 500) arm_slide.setPower(-1);
-
-                if (mode2timer.milliseconds() >= 500) {
-                    liftup = false;
-                }
-
-
-//                if (gamepad1.left_bumper && !topToggle) {
-//                    if (topOn == false && tiltOn == false) {top_grip.setPosition(.40); topOn = true;}
-//                    else if (topOn == false && tiltOn == true) {top_grip.setPosition(0.25);  topOn = false;}
-//                    else if (topOn == true) {top_grip.setPosition(0.11);
-//
-//                        topOn = false;
-//                    }
-//                    topToggle = true;
-//                }
-//                else if (!gamepad1.left_bumper) topToggle = false;
-//
-//
-//                if (gamepad1.right_bumper && !bottomToggle) {
-//                    if (bottomOn == false && tiltOn == false) {bottom_grip.setPosition(0.1); bottomOn = true;}
-//                    else if (bottomOn == false && tiltOn == true) {bottom_grip.setPosition(0.23); bottomOn = false;}
-//                    else if (bottomOn == true) {bottom_grip.setPosition(0.38);
-//
-//                        bottomOn = false;
-//                    }
-//                    bottomToggle = true;
-//                }
-//                else if (!gamepad1.right_bumper) bottomToggle = false;
-
-
-
-//                if (gamepad1.y && !tiltToggle) {
-//                    if (tiltOn == false) {hand_tilt.setPosition(0.2); tiltOn = true;}
-//                    else {hand_tilt.setPosition(0.48);
-//
-//                        tiltOn = false;
-//                    }
-//                    tiltToggle = true;
-//                }
-//                else if (!gamepad1.y) tiltToggle = false;
-
-
-
 
                 //wiggle
                 if (gamepad1.x) {
@@ -297,19 +278,40 @@ public class TeleopMain extends LinearOpMode {
     }
 
 
+    public void LiftUp(double inches, double speed) {
+        boolean initilized = false;
+        double inchesadjusted = inches;
+        if (!initilized) {
+            if (armsafetybutton.isPressed()) {inchesadjusted = (inches - 0.1);}
+            while (armsafetybutton.isPressed()) {arm_slide.setPower(-.3);}
+            if (!armsafetybutton.isPressed()) {initilized = true; arm_slide.setPower(0);}
+        }
+
+        if (initilized) {
+            double inchesticks = (50 * inchesadjusted);
+            double initpos = arm_slide.getCurrentPosition();
+            while ((arm_slide.getCurrentPosition()-initpos) >= -inchesticks) {
+                arm_slide.setPower(-speed);
+                if ((arm_slide.getCurrentPosition()-initpos) <= -inchesticks) { //50 ticks per in
+                    arm_slide.setPower(0);
+                }
+            }
+        }
+    }
+
+
 
     public void resetarm() {
         if (!armsafetybutton.isPressed()) {
             ElapsedTime safetytimer = new ElapsedTime();
             safetytimer.reset();
-            while (!armsafetybutton.isPressed() && safetytimer.milliseconds() <= 1000) {
+            while (!armsafetybutton.isPressed() && safetytimer.milliseconds() <= 550) {
                 arm_slide.setPower(1);
-                if (armsafetybutton.isPressed() || safetytimer.milliseconds() >= 1000) {
+                if (armsafetybutton.isPressed() || safetytimer.milliseconds() >= 550) {
                     arm_slide.setPower(0);
+                    }
                 }
             }
-        }
-
     }
     public void wiggle() {
         int frequency = 15;
