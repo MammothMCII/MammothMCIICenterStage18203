@@ -139,30 +139,32 @@ public class TeleopMain extends LinearOpMode {
                     winch.setPower(0);
                 }
 
-                arm_power = gamepad1.left_stick_y;
-                if (arm_power > 0.2) {
-                    clamp(arm_power, 0.2, 1);
+                if (!liftup && (mode == 2 || gamepad1.left_bumper)) {
+                    arm_power = gamepad1.left_stick_y;
                 }
-                else if (arm_power < 0.2) {
-                    clamp(arm_power, -0.2, -1);
+                if (arm_power > 0.4) {
+                    clamp(arm_power, 0.4, 1);
                 }
-                else{
+                else if (arm_power < -0.4) {
+                    clamp(arm_power, -1, -0.4);
+                }
+                else if (!liftup){
                     arm_power = 0;
                 }
 
-                if (armsafetybutton.isPressed()) {
+                if (armsafetybutton.isPressed() && !liftup) {
                     arm_slide.setPower(Math.min(Math.max(arm_power, -1), 0));
                 }
-                else if(armlimitbutton.isPressed()) {
+                else if(armlimitbutton.isPressed() && !liftup) {
                     arm_slide.setPower((Math.min(Math.max(arm_power, 0), -1)));
                 }
-                else if (!liftup) {
+                else if (!liftup){
                     arm_slide.setPower(arm_power);
                 }
 
 
                 if (gamepad1.dpad_left && !winchToggle) {
-                    if (winchOn == false) {winch_release.setPosition(0.4); winchOn = true;}
+                    if (!winchOn) {winch_release.setPosition(0.4); winchOn = true;}
                     else {winch_release.setPosition(1);
 
                         winchOn = false;
@@ -191,7 +193,7 @@ public class TeleopMain extends LinearOpMode {
                 else if (!gamepad1.right_bumper) mode1toggle = false;
 
                 //delay for hand tilt after pickup
-                if (mode0timer.milliseconds() >= 300 && tiltup == true) {
+                if (mode0timer.milliseconds() >= 300 && tiltup) {
                     hand_tilt.setPosition(0);
                     tiltup = false;
                 }
@@ -199,7 +201,6 @@ public class TeleopMain extends LinearOpMode {
                 if (gamepad1.y && !mode2toggle) {
                     if (mode == 0) {
                         hand_tilt.setPosition(0.2);
-                        arm_slide.setPower(1);
                         mode2timer.reset();
                         liftup = true;
                         mode = 2;
@@ -215,10 +216,12 @@ public class TeleopMain extends LinearOpMode {
                 }
                 else if (!gamepad1.y) mode2toggle = false;
 
-                if (mode2timer.milliseconds() >= 500 && liftup == true) {
-                    arm_slide.setPower(0);
+                while (mode2timer.milliseconds() < 500) arm_slide.setPower(-1);
+
+                if (mode2timer.milliseconds() >= 500) {
                     liftup = false;
                 }
+
 
 //                if (gamepad1.left_bumper && !topToggle) {
 //                    if (topOn == false && tiltOn == false) {top_grip.setPosition(.40); topOn = true;}
@@ -270,7 +273,7 @@ public class TeleopMain extends LinearOpMode {
                 }
 
                 if (gamepad1.dpad_right && !planeToggle) {
-                    if (planeOn == false) {planeLauncher.setPosition(0.5); planeOn = true;}
+                    if (!planeOn) {planeLauncher.setPosition(0.5); planeOn = true;}
                     else {planeLauncher.setPosition(0);
 
                         planeOn = false;
