@@ -75,10 +75,12 @@ public class TeleopMain extends LinearOpMode {
         int mode = 0;
         boolean mode1toggle = false;
         boolean mode2toggle = false;
-        boolean godownonce = false;
 
         ElapsedTime mode0timer = new ElapsedTime();
         boolean tiltup = false;
+
+        ElapsedTime mode2timer = new ElapsedTime();
+        boolean liftup = false;
 
         //initAprilTag();
 
@@ -115,13 +117,6 @@ public class TeleopMain extends LinearOpMode {
         if (opModeIsActive()) {
             while (opModeIsActive()) {
                 //telemetryAprilTag();
-
-                //reset arm and motor positon
-                if (godownonce == false) {
-                    resetarm();
-                    godownonce = true;
-                }
-
                 telemetry.update();
 
                 drive_speed = (1 - (gamepad1.right_trigger/1.5));
@@ -161,7 +156,7 @@ public class TeleopMain extends LinearOpMode {
                 else if(armlimitbutton.isPressed()) {
                     arm_slide.setPower((Math.min(Math.max(arm_power, 0), -1)));
                 }
-                else {
+                else if (!liftup) {
                     arm_slide.setPower(arm_power);
                 }
 
@@ -203,15 +198,27 @@ public class TeleopMain extends LinearOpMode {
 
                 if (gamepad1.y && !mode2toggle) {
                     if (mode == 0) {
+                        hand_tilt.setPosition(0.2);
+                        arm_slide.setPower(1);
+                        mode2timer.reset();
+                        liftup = true;
                         mode = 2;
                     }
-                    else if (mode == 2){
+                    else if (mode == 2) {
+                        hand_tilt.setPosition(0);
+                        bottom_grip.setPosition(0.38);
+                        top_grip.setPosition(0.11);
                         resetarm();
                         mode = 0;
                     }
                     mode2toggle = true;
                 }
                 else if (!gamepad1.y) mode2toggle = false;
+
+                if (mode2timer.milliseconds() >= 500 && liftup == true) {
+                    arm_slide.setPower(0);
+                    liftup = false;
+                }
 
 //                if (gamepad1.left_bumper && !topToggle) {
 //                    if (topOn == false && tiltOn == false) {top_grip.setPosition(.40); topOn = true;}
