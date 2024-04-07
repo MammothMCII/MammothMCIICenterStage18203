@@ -11,7 +11,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.checkerframework.checker.units.qual.A;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
@@ -71,8 +70,6 @@ public class TeleopMain extends LinearOpMode {
         boolean bottomOn = false;
         boolean tiltToggle = false;
         boolean tiltOn = false;
-        boolean placemodeOn = false;
-        boolean placemodeToggle = false;
 
         //initAprilTag();
 
@@ -163,15 +160,6 @@ public class TeleopMain extends LinearOpMode {
                 }
                 else if (!gamepad1.dpad_left) winchToggle = false;
 
-                if (gamepad1.b && !placemodeToggle) {
-                    if (placemodeOn == false) {placemode (); placemodeOn = true;}
-                    else {placemode ();
-
-                        placemodeOn = false;
-                    }
-                    placemodeToggle = true;
-                }
-                else if (!gamepad1.b) placemodeToggle = false;
 
 
                 if (gamepad1.left_bumper && !topToggle) {
@@ -196,6 +184,18 @@ public class TeleopMain extends LinearOpMode {
                     bottomToggle = true;
                 }
                 else if (!gamepad1.right_bumper) bottomToggle = false;
+
+
+
+                if (gamepad1.y && !tiltToggle) {
+                    if (tiltOn == false) {hand_tilt.setPosition(0.2); tiltOn = true;}
+                    else {hand_tilt.setPosition(0.48);
+
+                        tiltOn = false;
+                    }
+                    tiltToggle = true;
+                }
+                else if (!gamepad1.y) tiltToggle = false;
 
 
                 //wiggle
@@ -235,28 +235,6 @@ public class TeleopMain extends LinearOpMode {
         }
         //visionPortal.close();
     }
-
-
-    private void placemode(){
-        resetarm();
-    }
-
-    public void resetarm() {
-
-        ElapsedTime armsafetytimer = new ElapsedTime();
-        double armsafetytimerms = armsafetytimer.milliseconds();
-
-        bottom_grip.setPosition(0.38);
-        top_grip.setPosition(0.11);
-        hand_tilt.setPosition(0);
-
-        while (!armsafetybutton.isPressed()) {
-            arm_slide.setPower(-0.25);
-            if (armsafetybutton.isPressed()) {
-                break;
-                }
-            }
-        }
 
 
     public void wiggle() {
