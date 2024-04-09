@@ -18,23 +18,18 @@ public class MeepMeepTesting {
                 .setDimensions(13, 14)
                 .build();
 
-        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-38.5, -63, Math.toRadians(90)))
-                .splineToConstantHeading(new Vector2d(-46, -34), Math.toRadians(90), null, new ProfileAccelConstraint(-10, 10))
-                .waitSeconds(1)
-                .lineToYConstantHeading(-50)
-                .splineToConstantHeading(new Vector2d(-58, -50), Math.toRadians(90), new TranslationalVelConstraint(10), new ProfileAccelConstraint(-10, 10))
-                .splineToConstantHeading(new Vector2d(-58, -24), Math.toRadians(90), null, new ProfileAccelConstraint(-10, 10))
-                .splineToSplineHeading(new Pose2d(-50, -9, Math.toRadians(0)), Math.toRadians(0), new TranslationalVelConstraint(50), new ProfileAccelConstraint(-10, 10))
-                .waitSeconds(1)
-                .splineToConstantHeading(new Vector2d(30, -9), 0)
-                .splineToConstantHeading(new Vector2d(40, -20), 0)
-                .waitSeconds(1)
-                .splineToConstantHeading(new Vector2d(52, -29), 0, null, new ProfileAccelConstraint(-10, 10))
-                .waitSeconds(1)
-                .lineToXConstantHeading(45)
-                //.splineToConstantHeading(new Vector2d(35, -10), 0)
-                .splineToConstantHeading(new Vector2d(35, -15), Math.toRadians(90))
-                .splineToConstantHeading(new Vector2d(53, -10), 0)
+        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(0, 0, Math.toRadians(0)))
+                .turn(Math.toRadians(90))
+                .lineToYConstantHeading(36)
+                .turn(Math.toRadians(90))
+                .lineToXConstantHeading(-36)
+                .turn(Math.toRadians(90))
+                .lineToYConstantHeading(0)
+                .turn(Math.toRadians(90))
+                .lineToXConstantHeading(0)
+
+
+
                 .build());
 
         meepMeep.setBackground(MeepMeep.Background.FIELD_CENTERSTAGE_JUICE_DARK)

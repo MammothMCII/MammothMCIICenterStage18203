@@ -4,13 +4,20 @@ import static androidx.core.math.MathUtils.clamp;
 
 import android.util.Size;
 
+import androidx.annotation.NonNull;
+
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.checkerframework.checker.units.qual.A;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
@@ -25,7 +32,9 @@ import java.util.List;
 
 @TeleOp(name = "TeleopMain")
 public class TeleopMain extends LinearOpMode {
-
+    ElapsedTime safetytimer = new ElapsedTime();
+    ElapsedTime wristup = new ElapsedTime();
+    boolean reseting = false;
     private DcMotor topleftmotor;
     private DcMotor bottomleftmotor;
     private DcMotor toprightmotor;
@@ -45,6 +54,29 @@ public class TeleopMain extends LinearOpMode {
     private AprilTagProcessor aprilTag;
     private VisionPortal visionPortal;
 
+    private double safteytime = 800;
+
+    private int pixels_held = 0;
+
+    mode state = mode.place;
+    mode laststate = null;
+    input lastinput = null;
+    public enum mode {
+        neutral,
+        pickup,
+        liftup,
+        delay,
+        place,
+        liftdown,
+        get2knownpos;
+    }
+
+    public enum input {
+        rB,
+        y,
+        b,
+    }
+
 
 
 
@@ -53,6 +85,26 @@ public class TeleopMain extends LinearOpMode {
      */
     @Override
     public void runOpMode() {
+
+        //bottom grip vars
+        double bottom_grip_closed = 0.38;
+        double bottom_grip_pickup = 0.2;
+        double bottom_grip_drop = 0.29;
+
+        //top grip vars
+        double top_grip_closed = 0.11;
+        double top_grip_pickup = 0.5;
+        double top_grip_drop = .2;
+
+        //wrist vars
+        double wrist_down = 0.48;
+        double wrist_neutral = 0.1;
+        double wrist_place = 0.3;
+
+        boolean rbpressed = false;
+        boolean bpressed = false;
+        boolean ypressed = false;
+
         double drive_speed;
         double turbo;
         double arm_speed;
@@ -70,6 +122,13 @@ public class TeleopMain extends LinearOpMode {
         boolean bottomOn = false;
         boolean tiltToggle = false;
         boolean tiltOn = false;
+        boolean onepixeltoggle = false;
+        boolean dropToggle = false;
+
+
+        boolean mode1toggle = false;
+        boolean mode2toggle = false;
+
 
         //initAprilTag();
 
@@ -94,8 +153,9 @@ public class TeleopMain extends LinearOpMode {
         toprightmotor.setDirection(DcMotorSimple.Direction.REVERSE);
         bottomrightmotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        bottom_grip.setPosition(0.38);
-        top_grip.setPosition(0.11);
+
+        bottom_grip.setPosition(bottom_grip_closed);
+        top_grip.setPosition(top_grip_closed);
         winch_release.setPosition(1);
 
         hand_tilt.setPosition(0.48);
@@ -105,7 +165,6 @@ public class TeleopMain extends LinearOpMode {
         if (opModeIsActive()) {
             while (opModeIsActive()) {
                 //telemetryAprilTag();
-
                 telemetry.update();
 
                 drive_speed = (1 - (gamepad1.right_trigger/1.5));
@@ -128,14 +187,16 @@ public class TeleopMain extends LinearOpMode {
                     winch.setPower(0);
                 }
 
-                arm_power = gamepad1.left_stick_y;
-                if (arm_power > 0.2) {
-                    clamp(arm_power, 0.2, 1);
+                if (gamepad1.left_bumper || state == mode.liftup || state == mode.place) {
+                    arm_power = gamepad1.left_stick_y;
                 }
-                else if (arm_power < 0.2) {
-                    clamp(arm_power, -0.2, -1);
+                if (arm_power > 0.4) {
+                    clamp(arm_power, 0.4, 1);
                 }
-                else{
+                else if (arm_power < -0.4) {
+                    clamp(arm_power, -1, -0.4);
+                }
+                else {
                     arm_power = 0;
                 }
 
@@ -149,9 +210,8 @@ public class TeleopMain extends LinearOpMode {
                     arm_slide.setPower(arm_power);
                 }
 
-
                 if (gamepad1.dpad_left && !winchToggle) {
-                    if (winchOn == false) {winch_release.setPosition(0.4); winchOn = true;}
+                    if (!winchOn) {winch_release.setPosition(0.4); winchOn = true;}
                     else {winch_release.setPosition(1);
 
                         winchOn = false;
@@ -160,58 +220,14 @@ public class TeleopMain extends LinearOpMode {
                 }
                 else if (!gamepad1.dpad_left) winchToggle = false;
 
-
-
-                if (gamepad1.left_bumper && !topToggle) {
-                    if (topOn == false) {top_grip.setPosition(.60); topOn = true;}
-                    else {top_grip.setPosition(0.11);
-
-                        topOn = false;
-                    }
-                    topToggle = true;
-                }
-                else if (!gamepad1.left_bumper) topToggle = false;
-
-
-                if (gamepad1.right_bumper && !bottomToggle) {
-                    if (bottomOn == false) {bottom_grip.setPosition(0); bottomOn = true;}
-                    else {bottom_grip.setPosition(0.38);
-
-                        bottomOn = false;
-                    }
-                    bottomToggle = true;
-                }
-                else if (!gamepad1.right_bumper) bottomToggle = false;
-
-
-
-                if (gamepad1.y && !tiltToggle) {
-                    if (tiltOn == false) {hand_tilt.setPosition(0.2); tiltOn = true;}
-                    else {hand_tilt.setPosition(0.48);
-
-                        tiltOn = false;
-                    }
-                    tiltToggle = true;
-                }
-                else if (!gamepad1.y) tiltToggle = false;
-
-
                 //wiggle
                 if (gamepad1.x) {
                     wiggle();
 
                 }
 
-                if (gamepad1.touchpad) {
-                    bottom_grip.setPosition(0);
-                    top_grip.setPosition(1);
-                }
-
-
-
-
                 if (gamepad1.dpad_right && !planeToggle) {
-                    if (planeOn == false) {planeLauncher.setPosition(0.5); planeOn = true;}
+                    if (!planeOn) {planeLauncher.setPosition(0.5); planeOn = true;}
                     else {planeLauncher.setPosition(0);
 
                         planeOn = false;
@@ -220,12 +236,79 @@ public class TeleopMain extends LinearOpMode {
                 }
                 else if (!gamepad1.dpad_right) planeToggle = false;
 
-
-                if (gamepad1.a){
-                    hand_tilt.setPosition(0);
+                if (gamepad1.right_bumper && !rbpressed && state == mode.place) {
+                    if (pixels_held == 2) {
+                        bottom_grip.setPosition(bottom_grip_drop);
+                        pixels_held = 1;
+                    }
+                    if (pixels_held == 1) {
+                        top_grip.setPosition(top_grip_drop);
+                        pixels_held = 0;
+                    }
+                    if (pixels_held == 0) {
+                        //hand to adjust position
+                        bottom_grip.setPosition(bottom_grip_closed);
+                        top_grip.setPosition(.6);
+                        hand_tilt.setPosition(wrist_down);
+                    }
+                    rbpressed =true;
                 }
+                if (!gamepad1.right_bumper) rbpressed = false;
 
+                //change state conditions
+                if (state == mode.delay && wristup.milliseconds() >=400) switchstate();
+                if (state == mode.liftdown && ((safetytimer.milliseconds() >= safteytime) || armsafetybutton.isPressed())) switchstate();
+                if (state == mode.get2knownpos && !armsafetybutton.isPressed()) switchstate();
 
+                if (gamepad1.right_bumper && !rbpressed) {
+                    lastinput = input.rB;
+                    switchstate();
+                    rbpressed =true;
+                }
+                if (!gamepad1.right_bumper) rbpressed = false;
+
+                if (gamepad1.b && !bpressed) {
+                    lastinput = input.b;
+                    switchstate();
+                    bpressed =true;
+                }
+                if (!gamepad1.b) bpressed = false;
+
+                if (gamepad1.y && !ypressed) {
+                    lastinput = input.y;
+                    switchstate();
+                    ypressed =true;
+                }
+                if (!gamepad1.y) ypressed = false;
+
+                //state constants
+                if (state == mode.neutral) {
+                    hand_tilt.setPosition(wrist_neutral);
+                    top_grip.setPosition(top_grip_closed);
+                    bottom_grip.setPosition(bottom_grip_closed);
+                }
+                if (state == mode.pickup) {
+                    hand_tilt.setPosition(wrist_down);
+                    top_grip.setPosition(top_grip_pickup);
+                    bottom_grip.setPosition(bottom_grip_pickup);
+                }
+                if (state == mode.delay) {
+                    top_grip.setPosition(top_grip_closed);
+                    bottom_grip.setPosition(bottom_grip_closed);
+                }
+                if (state == mode.place && pixels_held != 0) {
+                    hand_tilt.setPosition(wrist_place);
+                }
+                if (state == mode.liftup) {
+                    if (laststate == mode.get2knownpos) arm_slide.setPower(-.3);
+                    if (laststate == mode.neutral || laststate == mode.delay) arm_slide.setPower(-1);
+                }
+                if (state == mode.liftdown) {
+                    arm_slide.setPower(1);
+                }
+                if (state == mode.get2knownpos) {
+                    arm_slide.setPower(-.3);
+                }
 
                 telemetry.update();
             }
@@ -233,6 +316,85 @@ public class TeleopMain extends LinearOpMode {
         }
         //visionPortal.close();
     }
+
+
+    public void switchstate() {
+        //store last state
+        mode lastlaststate = laststate;
+        laststate = state;
+        //state switching logic
+        if (state == mode.neutral) {
+            if (gamepad1.y) {state = mode.liftup; return;}
+            if (gamepad1.right_bumper) {state = mode.pickup; return;}
+        }
+        if (state == mode.pickup) {
+            if (gamepad1.b && armsafetybutton.isPressed()) {state = mode.get2knownpos; return;}
+            if (gamepad1.b) {state = mode.liftup; return;}
+            if (gamepad1.y || gamepad1.right_bumper) {
+                wristup.reset();
+                state = mode.delay;
+                return;
+            }
+        }
+        if ((state == mode.get2knownpos) && !armsafetybutton.isPressed()) {state = mode.liftup; return;}
+        if (state == mode.delay) {
+            if (wristup.milliseconds() >= 400) {
+                if (lastinput == input.rB) {state = mode.neutral; return;}
+                if (lastinput == input.y) {state = mode.liftup; return;}
+            }
+        if (state == mode.liftup) {
+            if (laststate == mode.get2knownpos && !gamepad1.b) {state = mode.pickup; return;}
+            if (laststate == mode.neutral && || laststate == mode.delay) {state = mode.place; return;}
+        }
+        if (state == mode.place) {
+            if (gamepad1.y) {
+                safetytimer.reset();
+                state = mode.liftdown;
+                return;
+            }
+        }
+        if (state == mode.liftdown) {
+            if (armsafetybutton.isPressed() || safetytimer.milliseconds() >= safteytime) {state = mode.neutral; return;}
+        }
+        //restore laststate if state is not changed
+        laststate = lastlaststate;
+    }
+
+
+//    private void LiftUp(double inches, double speed) {
+//        boolean initilized = false;
+//        double inchesadjusted = inches;
+//
+//        if (armsafetybutton.isPressed()) {inchesadjusted = (inches - 0.1);}
+//        while (armsafetybutton.isPressed()) {arm_slide.setPower(-.3);}
+//        if (!armsafetybutton.isPressed()) {initilized = true; arm_slide.setPower(0);}
+//
+//
+//        if (initilized) {
+//            double inchesticks = (50 * inchesadjusted);
+//            double initpos = arm_slide.getCurrentPosition();
+//            while ((arm_slide.getCurrentPosition()-initpos) >= -inchesticks) {
+//                arm_slide.setPower(-speed);
+//                if ((arm_slide.getCurrentPosition()-initpos) <= -inchesticks) { //50 ticks per in
+//                    arm_slide.setPower(0);
+//                }
+//            }
+//        }
+//    }
+
+
+
+//    public void resetarm() {
+//        if (armsafetybutton.isPressed() || safetytimer.milliseconds() >= 600) {
+//            arm_slide.setPower(0);
+//            reseting = false;
+//        }
+//        else{
+//            reseting = true;
+//            arm_slide.setPower(1);
+//        }
+//
+//    }
 
 
     public void wiggle() {
@@ -326,6 +488,9 @@ public class TeleopMain extends LinearOpMode {
     /**
      * Add telemetry about AprilTag detections.
      */
+
+
+
     private void telemetryAprilTag() {
 
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();

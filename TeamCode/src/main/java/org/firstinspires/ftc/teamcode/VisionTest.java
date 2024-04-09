@@ -120,17 +120,19 @@ public class VisionTest extends LinearOpMode {
 
         public class LiftUp implements Action {
             private boolean initialized = false;
+            double initialPos;
 
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
                     lift.setPower(0.8);
                     initialized = true;
+                    initialPos = lift.getCurrentPosition();
                 }
 
                 double pos = lift.getCurrentPosition();
                 packet.put("liftPos", pos);
-                if (pos < 600.0) { //50 ticks per in
+                if (pos < 600.0+initialPos) { //50 ticks per in
                     return true;
                 } else {
                     lift.setPower(0);
@@ -328,6 +330,7 @@ public class VisionTest extends LinearOpMode {
                 .splineToConstantHeading(new Vector2d(-58, -50), Math.toRadians(90), new TranslationalVelConstraint(10), new ProfileAccelConstraint(-10, 10))
                 .splineToConstantHeading(new Vector2d(-58, -24), Math.toRadians(90), null, new ProfileAccelConstraint(-10, 10))
                 .splineToSplineHeading(new Pose2d(-50, -9, Math.toRadians(0)), Math.toRadians(0), new TranslationalVelConstraint(50), new ProfileAccelConstraint(-10, 10))
+                .waitSeconds(wait_time)
                 .build();
 
 
@@ -336,13 +339,15 @@ public class VisionTest extends LinearOpMode {
                 .splineToConstantHeading(new Vector2d(-58, -40), Math.toRadians(90), new TranslationalVelConstraint(10), new ProfileAccelConstraint(-10, 10))
                 .splineToConstantHeading(new Vector2d(-58, -24), Math.toRadians(90), null, new ProfileAccelConstraint(-10, 10))
                 .splineToSplineHeading(new Pose2d(-50, -9, Math.toRadians(0)), Math.toRadians(0), new TranslationalVelConstraint(50), new ProfileAccelConstraint(-10, 10))
+                .waitSeconds(wait_time)
                 .build();
 
         Action Red_to_waitR = drive.actionBuilder(new Pose2d(-23, -36, Math.toRadians(90)))
-                .splineToConstantHeading(new Vector2d(-26, -33), Math.toRadians(180))
-                .splineToConstantHeading(new Vector2d(-60, -33), Math.toRadians(90))
-                .splineToConstantHeading(new Vector2d(-60, -24), Math.toRadians(90))
+                .splineToConstantHeading(new Vector2d(-26, -33), Math.toRadians(180), new TranslationalVelConstraint(10), new ProfileAccelConstraint(-10, 10))
+                .splineToConstantHeading(new Vector2d(-60, -33), Math.toRadians(90), new TranslationalVelConstraint(30), new ProfileAccelConstraint(-10, 10))
+                .splineToConstantHeading(new Vector2d(-60, -24), Math.toRadians(90), new TranslationalVelConstraint(30), new ProfileAccelConstraint(-10, 10))
                 .splineToSplineHeading(new Pose2d(-50, -9, Math.toRadians(0)), Math.toRadians(0))
+                .waitSeconds(wait_time)
                 .build();
 
 
@@ -368,12 +373,14 @@ public class VisionTest extends LinearOpMode {
 
         //park
         Action Red_Place_returnL = drive.actionBuilder(new Pose2d(53, -31, 0))
+                .waitSeconds(0.5)
                 .lineToXConstantHeading(45)
                 .splineToConstantHeading(new Vector2d(35, -15), Math.toRadians(90))
                 .splineToConstantHeading(new Vector2d(53, -10), 0)
                 .build();
 
         Action Red_Place_returnR = drive.actionBuilder(new Pose2d(53, -31, 0))
+                .waitSeconds(0.5)
                 .lineToXConstantHeading(45)
                 .splineToConstantHeading(new Vector2d(35, -40), Math.toRadians(-90))
                 .splineToConstantHeading(new Vector2d(53, -60), 0)
@@ -401,6 +408,7 @@ public class VisionTest extends LinearOpMode {
                 .splineToConstantHeading(new Vector2d(-60, 33), Math.toRadians(-90))
                 .splineToConstantHeading(new Vector2d(-60, 24), Math.toRadians(-90))
                 .splineToSplineHeading(new Pose2d(-50, 9, Math.toRadians(0)), Math.toRadians(0))
+                .waitSeconds(wait_time)
                 .build();
 
         Action Blue_to_waitM = drive.actionBuilder(new Pose2d(-38, 32, Math.toRadians(-90)))
@@ -408,6 +416,7 @@ public class VisionTest extends LinearOpMode {
                 .splineToConstantHeading(new Vector2d(-58, 40), Math.toRadians(-90), new TranslationalVelConstraint(10), new ProfileAccelConstraint(-10, 10))
                 .splineToConstantHeading(new Vector2d(-58, 24), Math.toRadians(-90), null, new ProfileAccelConstraint(-10, 10))
                 .splineToSplineHeading(new Pose2d(-50, 9, Math.toRadians(0)), Math.toRadians(0), new TranslationalVelConstraint(50), new ProfileAccelConstraint(-10, 10))
+                .waitSeconds(wait_time)
                 .build();
 
         Action Blue_to_waitR = drive.actionBuilder(new Pose2d(-46, 38, Math.toRadians(-90)))
@@ -415,6 +424,7 @@ public class VisionTest extends LinearOpMode {
                 .splineToConstantHeading(new Vector2d(-58, 50), Math.toRadians(-90), new TranslationalVelConstraint(10), new ProfileAccelConstraint(-10, 10))
                 .splineToConstantHeading(new Vector2d(-58, 24), Math.toRadians(-90), null, new ProfileAccelConstraint(-10, 10))
                 .splineToSplineHeading(new Pose2d(-50, 9, Math.toRadians(0)), Math.toRadians(0), new TranslationalVelConstraint(50), new ProfileAccelConstraint(-10, 10))
+                .waitSeconds(wait_time)
                 .build();
 
         //Blue return
@@ -441,12 +451,14 @@ public class VisionTest extends LinearOpMode {
 
         //park
         Action Blue_Place_returnL = drive.actionBuilder(new Pose2d(53, 31, 0))
+                .waitSeconds(0.5)
                 .lineToXConstantHeading(45)
                 .splineToConstantHeading(new Vector2d(35, 40), Math.toRadians(90))
                 .splineToConstantHeading(new Vector2d(53, 60), 0)
                 .build();
 
         Action Blue_Place_returnR = drive.actionBuilder(new Pose2d(53, 31, 0))
+                .waitSeconds(0.5)
                 .lineToXConstantHeading(45)
                 .splineToConstantHeading(new Vector2d(35, 15), Math.toRadians(-90))
                 .splineToConstantHeading(new Vector2d(53, 10), 0)
