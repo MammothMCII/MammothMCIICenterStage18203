@@ -221,10 +221,7 @@ public class TeleopMain extends LinearOpMode {
                 else if (!gamepad1.dpad_left) winchToggle = false;
 
                 //wiggle
-                if (gamepad1.x) {
-                    wiggle();
-
-                }
+                if (gamepad1.x) wiggle();
 
                 if (gamepad1.dpad_right && !planeToggle) {
                     if (!planeOn) {planeLauncher.setPosition(0.5); planeOn = true;}
@@ -256,6 +253,8 @@ public class TeleopMain extends LinearOpMode {
                 if (!gamepad1.right_bumper) rbpressed = false;
 
                 //change state conditions
+                //TODO: make switchstate trigger when arm is at correct height
+                //TODO: make get2knowm logic that makes arm go up 10 less ticks if the arm starts with armsafteybutton pressed
                 if (state == mode.delay && wristup.milliseconds() >=400) switchstate();
                 if (state == mode.liftdown && ((safetytimer.milliseconds() >= safteytime) || armsafetybutton.isPressed())) switchstate();
                 if (state == mode.get2knownpos && !armsafetybutton.isPressed()) switchstate();
@@ -339,12 +338,19 @@ public class TeleopMain extends LinearOpMode {
         if ((state == mode.get2knownpos) && !armsafetybutton.isPressed()) {state = mode.liftup; return;}
         if (state == mode.delay) {
             if (wristup.milliseconds() >= 400) {
-                if (lastinput == input.rB) {state = mode.neutral; return;}
-                if (lastinput == input.y) {state = mode.liftup; return;}
+                if (lastinput == input.rB) {
+                    state = mode.neutral;
+                    return;
+                }
+                if (lastinput == input.y) {
+                    state = mode.liftup;
+                    return;
+                }
             }
+        }
         if (state == mode.liftup) {
-            if (laststate == mode.get2knownpos && !gamepad1.b) {state = mode.pickup; return;}
-            if (laststate == mode.neutral && || laststate == mode.delay) {state = mode.place; return;}
+            if (laststate == mode.get2knownpos) {state = mode.pickup; return;}
+            if (laststate == mode.neutral || laststate == mode.delay) {state = mode.place; return;}
         }
         if (state == mode.place) {
             if (gamepad1.y) {
