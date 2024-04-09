@@ -114,7 +114,7 @@ public class TeleopMain extends LinearOpMode {
         top_grip.setPosition(0.11);
         winch_release.setPosition(1);
 
-        hand_tilt.setPosition(0.48);
+        hand_tilt.setPosition(0.46);
         arm_slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         waitForStart();
@@ -188,9 +188,9 @@ public class TeleopMain extends LinearOpMode {
                 //mode 1 pickup toggle
                 if (gamepad1.right_bumper && !mode1toggle) {
                     if (mode == 0) {
-                        top_grip.setPosition(.40);
-                        bottom_grip.setPosition(0.1);
-                        hand_tilt.setPosition(0.48);
+                        top_grip.setPosition(.45);
+                        bottom_grip.setPosition(0.05);
+                        hand_tilt.setPosition(.46);
                         pixels_held = 0;
                         mode = 1;
                     }
@@ -305,9 +305,9 @@ public class TeleopMain extends LinearOpMode {
         if (!armsafetybutton.isPressed()) {
             ElapsedTime safetytimer = new ElapsedTime();
             safetytimer.reset();
-            while (!armsafetybutton.isPressed() && safetytimer.milliseconds() <= 550) {
+            while (!armsafetybutton.isPressed() && safetytimer.milliseconds() <= 600) {
                 arm_slide.setPower(1);
-                if (armsafetybutton.isPressed() || safetytimer.milliseconds() >= 550) {
+                if (armsafetybutton.isPressed() || safetytimer.milliseconds() >= 600) {
                     arm_slide.setPower(0);
                     }
                 }
