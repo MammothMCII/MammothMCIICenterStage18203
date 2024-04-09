@@ -281,32 +281,38 @@ public class TeleopMain extends LinearOpMode {
                 if (!gamepad1.y) ypressed = false;
 
                 //state constants
-                if (state == mode.neutral) {
-                    hand_tilt.setPosition(wrist_neutral);
-                    top_grip.setPosition(top_grip_closed);
-                    bottom_grip.setPosition(bottom_grip_closed);
-                }
-                if (state == mode.pickup) {
-                    hand_tilt.setPosition(wrist_down);
-                    top_grip.setPosition(top_grip_pickup);
-                    bottom_grip.setPosition(bottom_grip_pickup);
-                }
-                if (state == mode.delay) {
-                    top_grip.setPosition(top_grip_closed);
-                    bottom_grip.setPosition(bottom_grip_closed);
-                }
-                if (state == mode.place && pixels_held != 0) {
-                    hand_tilt.setPosition(wrist_place);
-                }
-                if (state == mode.liftup) {
-                    if (laststate == mode.get2knownpos) arm_slide.setPower(-.3);
-                    if (laststate == mode.neutral || laststate == mode.delay) arm_slide.setPower(-1);
-                }
-                if (state == mode.liftdown) {
-                    arm_slide.setPower(1);
-                }
-                if (state == mode.get2knownpos) {
-                    arm_slide.setPower(-.3);
+                switch (state) {
+
+                    case neutral:
+                        hand_tilt.setPosition(wrist_neutral);
+                        top_grip.setPosition(top_grip_closed);
+                        bottom_grip.setPosition(bottom_grip_closed);
+
+                    case pickup:
+                        hand_tilt.setPosition(wrist_down);
+                        top_grip.setPosition(top_grip_pickup);
+                        bottom_grip.setPosition(bottom_grip_pickup);
+
+                    case delay:
+                        top_grip.setPosition(top_grip_closed);
+                        bottom_grip.setPosition(bottom_grip_closed);
+
+                    case place:
+                        if (pixels_held != 0) {
+                            hand_tilt.setPosition(wrist_place);
+                        }
+
+                    case liftup:
+                        if (laststate == mode.get2knownpos) {arm_slide.setPower(-.3);}
+                        if (laststate == mode.neutral || laststate == mode.delay) {
+                            arm_slide.setPower(-1);
+                    }
+                    case liftdown:
+                        arm_slide.setPower(1);
+
+                    case get2knownpos:
+                        arm_slide.setPower(-.3);
+
                 }
 
                 telemetry.update();
