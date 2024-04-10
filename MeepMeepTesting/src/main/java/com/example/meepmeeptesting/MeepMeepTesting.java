@@ -18,16 +18,12 @@ public class MeepMeepTesting {
                 .setDimensions(13, 14)
                 .build();
 
-        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(0, 0, Math.toRadians(0)))
-                .turn(Math.toRadians(90))
-                .lineToYConstantHeading(36)
-                .turn(Math.toRadians(90))
-                .lineToXConstantHeading(-36)
-                .turn(Math.toRadians(90))
-                .lineToYConstantHeading(0)
-                .turn(Math.toRadians(90))
-                .lineToXConstantHeading(0)
-
+        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-24, 37, Math.toRadians(-90)))
+                .lineToYConstantHeading(39)
+                .splineToConstantHeading(new Vector2d(-26, 39), Math.toRadians(180), new TranslationalVelConstraint(10), new ProfileAccelConstraint(-10, 10))
+                .splineToConstantHeading(new Vector2d(-57, 33), Math.toRadians(-90), new TranslationalVelConstraint(30), new ProfileAccelConstraint(-10, 10))
+                .splineToConstantHeading(new Vector2d(-57, 24), Math.toRadians(-90), new TranslationalVelConstraint(30), new ProfileAccelConstraint(-10, 10))
+                .splineToSplineHeading(new Pose2d(-50, 9, Math.toRadians(0)), Math.toRadians(0))
 
 
                 .build());
