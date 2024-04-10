@@ -38,6 +38,8 @@ public class TeleopMain extends LinearOpMode {
 
     private int pixels_held = 0;
 
+    private double pixelheightadjusted = 25;
+
     mode state = mode.place;
     mode laststate = null;
     input lastinput = null;
@@ -45,10 +47,10 @@ public class TeleopMain extends LinearOpMode {
         neutral,
         pickup,
         liftup,
-        delay,
         place,
         liftdown,
-        get2knownpos;
+        safteypixel,
+        pixel,
     }
 
     public enum input {
@@ -60,17 +62,17 @@ public class TeleopMain extends LinearOpMode {
     //bottom grip vars
     double bottom_grip_closed = 0.38;
     double bottom_grip_pickup = 0.2;
-    double bottom_grip_drop = 0.29;
+    double bottom_grip_drop = 0.2;
 
     //top grip vars
     double top_grip_closed = 0.11;
     double top_grip_pickup = 0.5;
-    double top_grip_drop = .2;
+    double top_grip_drop = .25;
 
     //wrist vars
     double wrist_down = 0.48;
     double wrist_neutral = 0.1;
-    double wrist_place = 0.3;
+    double wrist_place = 0.22;
 
     boolean rbpressed = false;
     boolean bpressed = false;
@@ -102,6 +104,8 @@ public class TeleopMain extends LinearOpMode {
 
     double encoderGroundPos = 0.0;
     double lasttickpos = 0.0;
+
+    double encoderstartpos = 0.0;
 
 
 
@@ -155,6 +159,7 @@ public class TeleopMain extends LinearOpMode {
 
                 telemetry.update();
 
+
                 drive_speed = (1 - (gamepad1.right_trigger/1.5));
 
 
@@ -177,16 +182,10 @@ public class TeleopMain extends LinearOpMode {
 
                 arm_power = gamepad1.left_stick_y;
 
-                if (arm_power > 0.4) {
-                    clamp(arm_power, 0.4, 1);
-                }
-                else if (arm_power < -0.4) {
-                    clamp(arm_power, -1, -0.4);
-                }
-                if (!(state == mode.place) && !gamepad1.left_bumper) {
+                if (arm_power < 0.4 && arm_power > -0.4) {
                     arm_power = 0;
                 }
-                else {
+                else if (!(state == mode.place) && !gamepad1.left_bumper) {
                     arm_power = 0;
                 }
 
@@ -235,27 +234,24 @@ public class TeleopMain extends LinearOpMode {
                 //change state conditions
                 switch (state) {
 
-                    case delay:
-                        if (wristup.milliseconds() >= 400) {
-                            switchstate();
-                        }
-
                     case liftdown:
                         if ((safetytimer.milliseconds() >= safteytime) || armsafetybutton.isPressed()) {
                             switchstate();
                             encoderGroundPos = arm_slide.getCurrentPosition();
                         }
 
-                    case get2knownpos:
+                    case safteypixel:
                         if (!armsafetybutton.isPressed()) {
                             switchstate();
                         }
-                        if (armsafetybutton.isPressed()){
-                            lasttickpos = arm_slide.getCurrentPosition();
+
+                    case pixel:
+                        if ((arm_slide.getCurrentPosition() - lasttickpos) >= pixelheightadjusted) {
+                            switchstate();
                         }
 
                     case liftup:
-                        if (arm_slide.getCurrentPosition() < (-500.0 - encoderGroundPos)){
+                        if (arm_slide.getCurrentPosition() < (-1000.0 - encoderstartpos)){
                             switchstate();
                         }
 
@@ -288,6 +284,7 @@ public class TeleopMain extends LinearOpMode {
                 telemetry.addData("last", laststate);
                 telemetry.addData("encoder pos", arm_slide.getCurrentPosition());
                 telemetry.addData("pixels held", pixels_held);
+                telemetry.addData("wristup", wristup.milliseconds());
 
 
 
@@ -304,108 +301,114 @@ public class TeleopMain extends LinearOpMode {
     public void switchstate() {
         //store last state
         mode lastlaststate = laststate;
-        laststate = state;
 
         //state switching logic
         switch (state){
 
             case neutral:
                 if (gamepad1.y) {
+                    encoderstartpos = arm_slide.getCurrentPosition();
                     state = mode.liftup;
+                    laststate = state;
                     return;
 
                 }
                 if (gamepad1.right_bumper) {
                     state = mode.pickup;
+                    laststate = state;
                     return;
                 }
+                break;
 
 
             case pickup:
                 if (gamepad1.b && armsafetybutton.isPressed()) {
-                    state = mode.get2knownpos;
+                    state = mode.safteypixel;
                     encoderGroundPos = arm_slide.getCurrentPosition();
+                    laststate = state;
                     return;
                 }
+
 
                 if (gamepad1.b) {
-                    state = mode.get2knownpos;
+                    state = mode.pixel;
                     lasttickpos = arm_slide.getCurrentPosition();
+                    laststate = state;
                     return;
                 }
-                if (gamepad1.y || gamepad1.right_bumper) {
+                if (gamepad1.right_bumper) {
                     wristup.reset();
-                    state = mode.delay;
                     pixels_held = 2;
+                    state = mode.neutral;
+                    laststate = state;
                     return;
                 }
+                break;
 
-            case get2knownpos:
-                if (!armsafetybutton.isPressed() && arm_slide.getCurrentPosition() < (-25.0 -lasttickpos)) {
+            case safteypixel:
+                if (!armsafetybutton.isPressed()) {
+                    state = mode.pixel;
+                    lasttickpos = arm_slide.getCurrentPosition();
+                    laststate = state;
+                    return;
+                }
+                break;
+
+            case pixel:
+                if ((arm_slide.getCurrentPosition() - lasttickpos) >= pixelheightadjusted) {
                     state = mode.pickup;
+                    laststate = state;
                     return;
                 }
-
-
-
-            case delay:
-                if (wristup.milliseconds() >= 400) {
-                    if (lastinput == input.y) {
-                        state = mode.liftup;
-                        switchstate();
-
-                        return;
-                    }
-                    if (lastinput == input.rB) {
-                        state = mode.neutral;
-                        switchstate();
-                        return;
-                    }
-                }
+                break;
 
 
             case liftup:
-                if (lastlaststate == mode.get2knownpos) {
-                    state = mode.pickup;
-
-                    return;
-                }
-                if (lastlaststate == mode.neutral || lastlaststate == mode.delay) {
-                    state = mode.place;
-
-                    return;
-                }
+                state = mode.place;
+                laststate = state;
+                break;
 
             case place:
                 if (gamepad1.right_bumper) {
                     if (pixels_held == 2) {
                         bottom_grip.setPosition(bottom_grip_drop);
                         pixels_held = 1;
+                        laststate = state;
+                        return;
                     }
                     if (pixels_held == 1) {
                         top_grip.setPosition(top_grip_drop);
                         pixels_held = 0;
+                        laststate = state;
+                        return;
                     }
                     if (pixels_held == 0) {
                         //hand to adjust position
                         bottom_grip.setPosition(bottom_grip_closed);
                         top_grip.setPosition(.6);
                         hand_tilt.setPosition(wrist_down);
+                        laststate = state;
+                        return;
                     }
+                    return;
                 }
+
 
                 if (gamepad1.y) {
                     safetytimer.reset();
                     state = mode.liftdown;
+                    laststate = state;
                     return;
                 }
+                break;
 
             case liftdown:
                 if (armsafetybutton.isPressed() || safetytimer.milliseconds() >= safteytime) {
                     state = mode.neutral;
                     encoderGroundPos = arm_slide.getCurrentPosition();
+                    laststate = state;
                     return;}
-
+                break;
         }
         //restore laststate if state is not changed
         laststate = lastlaststate;
@@ -417,20 +420,21 @@ public class TeleopMain extends LinearOpMode {
         switch (state) {
 
             case neutral:
-                hand_tilt.setPosition(wrist_neutral);
+
                 top_grip.setPosition(top_grip_closed);
                 bottom_grip.setPosition(bottom_grip_closed);
+                if (wristup.milliseconds() >=1000) {
+                    hand_tilt.setPosition(wrist_neutral);
+                }
+                else {
+                    hand_tilt.setPosition(wrist_down);
+                }
                 return;
 
             case pickup:
                 hand_tilt.setPosition(wrist_down);
                 top_grip.setPosition(top_grip_pickup);
                 bottom_grip.setPosition(bottom_grip_pickup);
-                return;
-
-            case delay:
-                top_grip.setPosition(top_grip_closed);
-                bottom_grip.setPosition(bottom_grip_closed);
                 return;
 
             case place:
@@ -440,18 +444,31 @@ public class TeleopMain extends LinearOpMode {
                 return;
 
             case liftup:
-                if (laststate == mode.get2knownpos) {arm_slide.setPower(-.3);}
-                if (laststate == mode.neutral || laststate == mode.delay) {
-                    arm_slide.setPower(-1);
-                }
+                arm_slide.setPower(-1);
+                top_grip.setPosition(top_grip_closed);
+                bottom_grip.setPosition(bottom_grip_closed);
+                hand_tilt.setPosition(wrist_place);
                 return;
 
             case liftdown:
                 arm_slide.setPower(1);
+                top_grip.setPosition(top_grip_closed);
+                bottom_grip.setPosition(bottom_grip_closed);
+                hand_tilt.setPosition(wrist_neutral);
                 return;
 
-            case get2knownpos:
-                arm_slide.setPower(-.3);
+            case safteypixel:
+                arm_slide.setPower(-.4);
+                return;
+
+            case pixel:
+                arm_slide.setPower(-.4);
+                if (laststate == mode.safteypixel) {
+                    pixelheightadjusted = 20;
+                }
+                else {
+                    pixelheightadjusted = 25;
+                }
         }
 
     }
