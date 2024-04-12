@@ -148,6 +148,7 @@ public class TeleopMain extends LinearOpMode {
         hand_tilt.setPosition(0.48);
         arm_slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        planeLauncher.setPosition(0);
 
 
 
@@ -246,7 +247,7 @@ public class TeleopMain extends LinearOpMode {
                         }
 
                     case pixel:
-                        if ((arm_slide.getCurrentPosition() - lasttickpos) >= pixelheightadjusted) {
+                        if ((arm_slide.getCurrentPosition() - lasttickpos) <= -pixelheightadjusted) {
                             switchstate();
                         }
 
@@ -308,14 +309,14 @@ public class TeleopMain extends LinearOpMode {
             case neutral:
                 if (gamepad1.y) {
                     encoderstartpos = arm_slide.getCurrentPosition();
-                    state = mode.liftup;
                     laststate = state;
+                    state = mode.liftup;
                     return;
 
                 }
                 if (gamepad1.right_bumper) {
-                    state = mode.pickup;
                     laststate = state;
+                    state = mode.pickup;
                     return;
                 }
                 break;
@@ -323,49 +324,48 @@ public class TeleopMain extends LinearOpMode {
 
             case pickup:
                 if (gamepad1.b && armsafetybutton.isPressed()) {
+                    laststate = state;
                     state = mode.safteypixel;
                     encoderGroundPos = arm_slide.getCurrentPosition();
-                    laststate = state;
                     return;
                 }
 
-
-                if (gamepad1.b) {
-                    state = mode.pixel;
-                    lasttickpos = arm_slide.getCurrentPosition();
+                if (gamepad1.b && !armsafetybutton.isPressed()) {
                     laststate = state;
+                    state = mode.pixel;
+                    encoderstartpos = arm_slide.getCurrentPosition();
                     return;
                 }
                 if (gamepad1.right_bumper) {
                     wristup.reset();
                     pixels_held = 2;
-                    state = mode.neutral;
                     laststate = state;
+                    state = mode.neutral;
                     return;
                 }
                 break;
 
             case safteypixel:
                 if (!armsafetybutton.isPressed()) {
-                    state = mode.pixel;
-                    lasttickpos = arm_slide.getCurrentPosition();
                     laststate = state;
+                    state = mode.pixel;
+                    encoderstartpos = arm_slide.getCurrentPosition();
                     return;
                 }
                 break;
 
             case pixel:
-                if ((arm_slide.getCurrentPosition() - lasttickpos) >= pixelheightadjusted) {
-                    state = mode.pickup;
+                if ((arm_slide.getCurrentPosition() - encoderstartpos) <= -pixelheightadjusted) {
                     laststate = state;
+                    state = mode.pickup;
                     return;
                 }
                 break;
 
 
             case liftup:
-                state = mode.place;
                 laststate = state;
+                state = mode.place;
                 break;
 
             case place:
@@ -373,13 +373,11 @@ public class TeleopMain extends LinearOpMode {
                     if (pixels_held == 2) {
                         bottom_grip.setPosition(bottom_grip_drop);
                         pixels_held = 1;
-                        laststate = state;
                         return;
                     }
                     if (pixels_held == 1) {
                         top_grip.setPosition(top_grip_drop);
                         pixels_held = 0;
-                        laststate = state;
                         return;
                     }
                     if (pixels_held == 0) {
@@ -387,7 +385,6 @@ public class TeleopMain extends LinearOpMode {
                         bottom_grip.setPosition(bottom_grip_closed);
                         top_grip.setPosition(.6);
                         hand_tilt.setPosition(wrist_down);
-                        laststate = state;
                         return;
                     }
                     return;
@@ -395,18 +392,18 @@ public class TeleopMain extends LinearOpMode {
 
 
                 if (gamepad1.y) {
+                    laststate = state;
                     safetytimer.reset();
                     state = mode.liftdown;
-                    laststate = state;
                     return;
                 }
                 break;
 
             case liftdown:
                 if (armsafetybutton.isPressed() || safetytimer.milliseconds() >= safteytime) {
+                    laststate = state;
                     state = mode.neutral;
                     encoderGroundPos = arm_slide.getCurrentPosition();
-                    laststate = state;
                     return;}
                 break;
         }
@@ -464,10 +461,10 @@ public class TeleopMain extends LinearOpMode {
             case pixel:
                 arm_slide.setPower(-.4);
                 if (laststate == mode.safteypixel) {
-                    pixelheightadjusted = 20;
+                    pixelheightadjusted = 0;
                 }
                 else {
-                    pixelheightadjusted = 25;
+                    pixelheightadjusted = 28;
                 }
         }
 
